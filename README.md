@@ -1,8 +1,8 @@
 # Country Explorer
 
-Petrol programming assignment. Phase 1 provides runnable infrastructure and a
-minimal Slovenian application shell. Country browsing, accounts and community
-features are not implemented yet.
+Petrol programming assignment. Phase 2A adds the backend country-data core to
+the runnable foundation and minimal Slovenian application shell. Frontend country
+pages, accounts and community features are not implemented yet.
 
 **Stack:** Java 21, Spring Boot 4.1.1, Maven Wrapper, PostgreSQL 17, Flyway,
 Angular 22, Node.js 24.15.0, npm, Vitest and Docker Compose. Nginx serves the
@@ -23,19 +23,20 @@ Native Java and Node installations are not needed for the Compose runtime.
 
 ```sh
 cp .env.example .env
-# Adjust local database credentials in .env.
+# Adjust local database credentials and set REST_COUNTRIES_API_KEY in .env.
 docker compose up --build
 ```
 
 Open **http://localhost:8080**. Health: http://localhost:8081/actuator/health.
-Only health is exposed by the backend in Phase 1; other backend requests receive
-403. Actuator is not proxied through the frontend. PostgreSQL has no published
+Country GET endpoints and health are public; other backend requests remain
+denied. Actuator is not proxied through the frontend. PostgreSQL has no published
 host port, and application/diagnostic ports bind to localhost.
 
-`REST_COUNTRIES_API_KEY` will be required for later country functionality. Leave
-it empty for Phase 1; this phase makes no REST Countries calls. `FRONTEND_ORIGIN`
-and the REST Countries settings are reserved for later integration. No credentials
-are passed into frontend builds. Keep `.env` private and untracked.
+`REST_COUNTRIES_API_KEY` is required for country requests and is sent only by
+the backend as a Bearer token to REST Countries v5. An empty key permits startup
+and health checks; country requests return `503 COUNTRY_SERVICE_UNAVAILABLE`.
+No credentials are passed into frontend builds. Keep `.env` private and untracked.
+`FRONTEND_ORIGIN` remains reserved for later integration.
 
 Flyway runs on startup with no application migrations yet. It creates only its
 schema history table. The domain phase will introduce V1; Hibernate uses `validate`.
@@ -49,6 +50,25 @@ docker compose down       # Stop services; preserve database volume.
 docker compose down -v    # Destructive reset: delete the database volume too.
 ```
 
+## Country API
+
+- `GET /api/v1/countries`: optional `search`, `region`, `sort=name|population`,
+  `direction=asc|desc`; defaults to name ascending. Regions are Africa, Americas,
+  Asia, Europe, Oceania and Antarctic (case-insensitive).
+- `GET /api/v1/countries/{alpha3}`: country details; codes accept either case.
+
+Names prefer Slovenian translations; search also matches canonical names.
+Country data stays in memory: the complete projected catalogue and individual
+country details have separate Caffeine caches with a default 24-hour TTL.
+No country records or application entities are stored in PostgreSQL in this phase.
+Errors use Problem Details with stable `code` values.
+
+Backend configuration supports `REST_COUNTRIES_BASE_URL`,
+`REST_COUNTRIES_CONNECT_TIMEOUT` (default `2s`), `REST_COUNTRIES_READ_TIMEOUT`
+(default `5s`), `COUNTRY_CATALOG_TTL` / `COUNTRY_DETAILS_TTL` (default `24h`),
+and `COUNTRY_DETAILS_MAXIMUM_SIZE` (default `300`). For Compose, optional overrides
+beyond base URL/key must be passed into the backend service environment.
+
 ## Development and tests
 
 Prerequisites: Java 21, Node.js `>=24.15.0 <25`, npm and Docker for PostgreSQL tests.
@@ -56,7 +76,7 @@ Prerequisites: Java 21, Node.js `>=24.15.0 <25`, npm and Docker for PostgreSQL t
 
 ```sh
 cd backend
-./mvnw verify             # Tests start their own PostgreSQL Testcontainer.
+./mvnw verify             # Local mock HTTP server + independent PostgreSQL Testcontainer.
 ```
 
 ```sh
@@ -93,3 +113,6 @@ cd backend
 This development database uses the same named volume as Compose. Stop it with
 `docker stop country-explorer-postgres-dev` before returning to the full stack.
 Backend tests use independent disposable containers and do not use this volume.
+Country integration tests use a local mock HTTP server; no API key, internet
+connection or real REST Countries quota is required by the test suite once build
+dependencies and the PostgreSQL image are available locally.

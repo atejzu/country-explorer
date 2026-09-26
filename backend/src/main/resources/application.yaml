@@ -40,3 +40,14 @@ management:
         enabled: false
       show-details: never
       show-components: never
+
+app:
+  rest-countries:
+    base-url: ${REST_COUNTRIES_BASE_URL:https://api.restcountries.com/countries/v5}
+    api-key: ${REST_COUNTRIES_API_KEY:}
+    connect-timeout: ${REST_COUNTRIES_CONNECT_TIMEOUT:2s}
+    read-timeout: ${REST_COUNTRIES_READ_TIMEOUT:5s}
+  country-cache:
+    catalogue-ttl: ${COUNTRY_CATALOG_TTL:24h}
+    details-ttl: ${COUNTRY_DETAILS_TTL:24h}
+    details-maximum-size: ${COUNTRY_DETAILS_MAXIMUM_SIZE:300}

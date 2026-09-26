@@ -21,7 +21,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB in .env}
       DB_USERNAME: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
-      # Reserved for later country integration; unused in Phase 1.
+      # Optional at startup; required when country endpoints call REST Countries.
       REST_COUNTRIES_API_KEY: ${REST_COUNTRIES_API_KEY:-}
       REST_COUNTRIES_BASE_URL: ${REST_COUNTRIES_BASE_URL:-https://api.restcountries.com/countries/v5}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:8080}

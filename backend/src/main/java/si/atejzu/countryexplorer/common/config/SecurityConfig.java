@@ -12,10 +12,11 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Phase 1 exposes infrastructure health only. CSRF remains enabled.
+        // Country reads and infrastructure health are public. CSRF remains enabled.
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health",
+                                "/api/v1/countries", "/api/v1/countries/{countryCode}").permitAll()
                         .anyRequest().denyAll())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

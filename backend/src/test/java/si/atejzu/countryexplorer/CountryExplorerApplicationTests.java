@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)
+@SpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.ALWAYS, properties = "app.rest-countries.api-key=")
 @AutoConfigureMockMvc
 class CountryExplorerApplicationTests {
 
@@ -54,8 +54,17 @@ class CountryExplorerApplicationTests {
 
     @Test
     void otherEndpointsAreNotPublic() throws Exception {
-        for (String path : List.of("/actuator", "/actuator/env", "/api/v1/countries", "/login")) {
+        for (String path : List.of("/actuator", "/actuator/env", "/api/v1/auth/csrf", "/login")) {
             mvc.perform(get(path)).andExpect(status().isForbidden());
+        }
+    }
+
+    @Test
+    void missingCountryKeyDoesNotPreventStartupAndCountryRequestsFailCleanly() throws Exception {
+        for (String path : List.of("/api/v1/countries", "/api/v1/countries/SVN")) {
+            mvc.perform(get(path)).andExpect(status().isServiceUnavailable())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.code")
+                            .value("COUNTRY_SERVICE_UNAVAILABLE"));
         }
     }
 

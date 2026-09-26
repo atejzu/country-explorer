@@ -1,0 +1,75 @@
+package si.atejzu.countryexplorer.common.error;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.HttpHeaders;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import si.atejzu.countryexplorer.country.application.CountryNotFoundException;
+import si.atejzu.countryexplorer.country.application.CountryServiceUnavailableException;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(InvalidQueryParameterException.class)
+    ResponseEntity<Object> invalidQuery(InvalidQueryParameterException exception, HttpServletRequest request) {
+        return problem(HttpStatus.BAD_REQUEST, "Invalid query parameter", exception.getMessage(), "INVALID_QUERY_PARAMETER", request);
+    }
+
+    @ExceptionHandler(CountryNotFoundException.class)
+    ResponseEntity<Object> countryNotFound(CountryNotFoundException exception, HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND, "Country not found", exception.getMessage(), "COUNTRY_NOT_FOUND", request);
+    }
+
+    @ExceptionHandler(CountryServiceUnavailableException.class)
+    ResponseEntity<Object> countryUnavailable(CountryServiceUnavailableException exception, HttpServletRequest request) {
+        return problem(HttpStatus.SERVICE_UNAVAILABLE, "Country service unavailable", exception.getMessage(), "COUNTRY_SERVICE_UNAVAILABLE", request);
+    }
+
+    @ExceptionHandler(Exception.class)
+    ResponseEntity<Object> unexpected(Exception exception, HttpServletRequest request) {
+        // Do not render/log arbitrary exception messages that could contain upstream credentials.
+        log.error("Unexpected application failure: category={}, location={}", exception.getClass().getName(),
+                exception.getStackTrace().length == 0 ? "unknown" : exception.getStackTrace()[0]);
+        return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", "An unexpected error occurred.", "INTERNAL_ERROR", request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(Exception exception, Object body,
+            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ResponseEntity<Object> normalized;
+        if (exception instanceof HttpMessageNotWritableException) {
+            normalized = problem(status, headers, "Internal server error", "An unexpected error occurred.",
+                    "INTERNAL_ERROR", ((ServletWebRequest) request).getRequest());
+        } else if (exception instanceof HttpMediaTypeNotAcceptableException) {
+            normalized = problem(status, headers, "Not acceptable", "The requested response media type is not supported.",
+                    "NOT_ACCEPTABLE", ((ServletWebRequest) request).getRequest());
+        } else {
+            return super.handleExceptionInternal(exception, body, headers, status, request);
+        }
+        // Retain Spring's committed-response handling and request error attributes.
+        return super.handleExceptionInternal(exception, normalized.getBody(), normalized.getHeaders(), status, request);
+    }
+
+    private ResponseEntity<Object> problem(HttpStatus status, String title, String detail,
+            String code, HttpServletRequest request) {
+        return problem(status, HttpHeaders.EMPTY, title, detail, code, request);
+    }
+
+    private ResponseEntity<Object> problem(HttpStatusCode status, HttpHeaders headers, String title,
+            String detail, String code, HttpServletRequest request) {
+        return ResponseEntity.status(status).headers(headers).contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(new ProblemDetailResponse("about:blank", title, status.value(), detail, request.getRequestURI(), code));
+    }
+}
