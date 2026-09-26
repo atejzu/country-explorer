@@ -1,0 +1,11 @@
+node_modules
+dist
+.angular
+coverage
+.git
+.idea
+.vscode
+*.log
+.env
+.env.*
+**/*:Zone.Identifier

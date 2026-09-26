@@ -1,8 +1,14 @@
 .codex/
 .env
+.env.*
+!.env.example
 .idea/
 .vscode/
 .DS_Store
 node_modules/
 dist/
 target/
+.angular/
+coverage/
+*.log
+*:Zone.Identifier
