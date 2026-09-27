@@ -325,7 +325,7 @@ class CountryHttpIntegrationTest {
 
     @Test
     void securityFoundationStillDeniesOtherRoutesAndUnsafeMethods() throws Exception {
-        for (String path : List.of("/login", "/api/v1/countries/SVN/discussions")) {
+        for (String path : List.of("/login", "/api/v1/countries/SVN/discussions/search")) {
             mvc.perform(get(path)).andExpect(status().isUnauthorized());
         }
         mvc.perform(post("/api/v1/countries")).andExpect(status().isForbidden());

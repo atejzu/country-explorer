@@ -29,7 +29,7 @@ class FlywayFavoritesMigrationTest {
     void resetDisposableDatabase() {
         jdbc = new JdbcTemplate(new DriverManagerDataSource(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword()));
-        flyway = migrations(null);
+        flyway = migrations("2");
         flyway.clean();
     }
 

@@ -344,7 +344,7 @@ class AuthIntegrationTest {
     @Test
     void securityDefaultsDenyFutureRoutesAndDoNotExposeFormOrBasicLogin() throws Exception {
         for (String path : List.of("/api/v1/users/me", "/login", "/api/v1/auth/login", "/api/v1/auth/logout",
-                "/api/v1/users/me/favorites", "/api/v1/countries/SVN/discussions", "/api/v1/unknown")) {
+                "/api/v1/users/me/favorites", "/api/v1/countries/SVN/discussions/search", "/api/v1/unknown")) {
             mvc.perform(get(path)).andExpect(problem(401, "AUTHENTICATION_REQUIRED"))
                     .andExpect(header().doesNotExist("Location")).andExpect(header().doesNotExist("WWW-Authenticate"));
         }

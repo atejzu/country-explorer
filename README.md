@@ -8,7 +8,8 @@ session authentication. Favourites now include backend persistence and the Angul
 authenticated users can add, remove and view saved countries at `/favorites`.
 Explorer cards and country details share optimistic favourite state with rollback
 on failure. Guest favourite actions preserve the complete safe `returnUrl`; a chosen
-action can complete once after confirmed login. Community remains pending.
+action can complete once after confirmed login. The community backend is implemented;
+the Angular community UI remains pending Phase 5B.
 
 **Stack:** Java 21, Spring Boot 4.1.1, Maven Wrapper, PostgreSQL 17, Flyway,
 Angular 22, Node.js 24.15.0, npm, Vitest and Docker Compose. Nginx serves the
@@ -34,9 +35,9 @@ docker compose up --build
 ```
 
 Open **http://localhost:8080**. Health: http://localhost:8081/actuator/health.
-Country GET endpoints, health and auth bootstrap/registration/login are public.
-Current-user, favourites and logout require authentication; future backend routes
-remain denied.
+Country and community GET endpoints, health and auth bootstrap/registration/login
+are public. Current-user, favourites, community mutations and logout require
+authentication; future backend routes remain denied.
 Actuator is not proxied through the frontend. PostgreSQL has no published
 host port, and application/diagnostic ports bind to localhost.
 
@@ -46,7 +47,8 @@ and health checks; country requests return `503 COUNTRY_SERVICE_UNAVAILABLE`.
 No credentials are passed into frontend builds. Keep `.env` private and untracked.
 `FRONTEND_ORIGIN` remains reserved for later integration.
 
-Flyway runs `V1__create_users.sql` and `V2__create_favorite_countries.sql` on startup.
+Flyway runs `V1__create_users.sql`, `V2__create_favorite_countries.sql` and
+`V3__create_discussions_and_comments.sql` on startup.
 The `users` table has UUID IDs, UTC timestamps and case-insensitive unique
 username/email indexes. Hibernate uses `validate`. Passwords use Spring Security's
 versioned delegating encoder with
@@ -81,8 +83,8 @@ Official names use Slovenian native names when available, otherwise canonical na
 Search matches both application display names and canonical names.
 Country data stays in memory: the complete projected catalogue and individual
 country details have separate Caffeine caches with a default 24-hour TTL.
-Country records are not stored in PostgreSQL; user accounts and favourite references
-are persisted there.
+Country records are not stored in PostgreSQL; user accounts, favourite references,
+discussions and comments are persisted there.
 Errors use Problem Details with stable `code` values.
 
 Backend configuration supports `REST_COUNTRIES_BASE_URL`,
@@ -130,6 +132,32 @@ cached catalogue, without a detail request per favourite. Country failures use t
 existing `404 COUNTRY_NOT_FOUND` / `503 COUNTRY_SERVICE_UNAVAILABLE` errors.
 The Angular favourites page loads on demand and keeps removing cards in place until
 the server confirms deletion. Logout and session changes clear protected state.
+
+## Backend community
+
+Discussions and flat comments persist in PostgreSQL and are publicly readable.
+Authenticated users create content; the backend derives authorship from the session
+and enforces ownership for edits and deletes. Every mutation requires CSRF.
+
+- `GET/POST /api/v1/countries/{countryCode}/discussions`: list or create discussions.
+  Creation validates the exact alpha-3 code through the cached country catalogue
+  before starting the database transaction.
+- `GET/PATCH/DELETE /api/v1/discussions/{id}`: read, edit or delete a discussion.
+- `GET/POST /api/v1/discussions/{id}/comments`: list or create comments.
+- `PATCH/DELETE /api/v1/comments/{id}`: edit or delete your own comment.
+
+The first successfully committed comment permanently locks the discussion's title,
+body and author deletion, even if every comment is later deleted. Comments remain
+open, and their authors may still edit or delete them. A shared pessimistic row lock
+serializes comment creation with discussion edits/deletes; comment insertion and
+the permanent flag commit or roll back together. Non-owners receive `403`; locked
+discussion owners receive `409 DISCUSSION_LOCKED`.
+
+Lists return `{items, page, size, totalItems, totalPages}` with zero-based pages.
+Discussions are newest first (default 10, maximum 50); comments are oldest first
+(default 20, maximum 100), with UUID tie-breakers. Comment counts are derived;
+public authors contain only ID and username. Angular community screens are pending
+Phase 5B.
 
 ## Angular authentication
 

@@ -2,8 +2,10 @@ package si.atejzu.countryexplorer.common.error;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +16,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
@@ -22,13 +25,44 @@ import si.atejzu.countryexplorer.auth.application.RegistrationConflictException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import si.atejzu.countryexplorer.discussion.application.DiscussionNotFoundException;
+import si.atejzu.countryexplorer.discussion.application.DiscussionNotOwnedException;
+import si.atejzu.countryexplorer.discussion.application.DiscussionLockedException;
+import si.atejzu.countryexplorer.comment.application.CommentNotFoundException;
+import si.atejzu.countryexplorer.comment.application.CommentNotOwnedException;
 import si.atejzu.countryexplorer.country.application.CountryNotFoundException;
 import si.atejzu.countryexplorer.country.application.CountryServiceUnavailableException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(DiscussionNotFoundException.class)
+    ResponseEntity<Object> discussionNotFound(DiscussionNotFoundException exception, HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND, "Discussion not found", exception.getMessage(), "DISCUSSION_NOT_FOUND", request);
+    }
+
+    @ExceptionHandler(DiscussionNotOwnedException.class)
+    ResponseEntity<Object> discussionNotOwned(DiscussionNotOwnedException exception, HttpServletRequest request) {
+        return problem(HttpStatus.FORBIDDEN, "Discussion not owned", exception.getMessage(), "DISCUSSION_NOT_OWNED", request);
+    }
+
+    @ExceptionHandler(DiscussionLockedException.class)
+    ResponseEntity<Object> discussionLocked(DiscussionLockedException exception, HttpServletRequest request) {
+        return problem(HttpStatus.CONFLICT, "Discussion is locked", exception.getMessage(), "DISCUSSION_LOCKED", request);
+    }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    ResponseEntity<Object> commentNotFound(CommentNotFoundException exception, HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND, "Comment not found", exception.getMessage(), "COMMENT_NOT_FOUND", request);
+    }
+
+    @ExceptionHandler(CommentNotOwnedException.class)
+    ResponseEntity<Object> commentNotOwned(CommentNotOwnedException exception, HttpServletRequest request) {
+        return problem(HttpStatus.FORBIDDEN, "Comment not owned", exception.getMessage(), "COMMENT_NOT_OWNED", request);
+    }
 
     @ExceptionHandler(InvalidQueryParameterException.class)
     ResponseEntity<Object> invalidQuery(InvalidQueryParameterException exception, HttpServletRequest request) {
@@ -84,6 +118,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(new ProblemDetailResponse("about:blank", "Validation failed", 400,
                         "One or more request fields are invalid.", ((ServletWebRequest) request).getRequest().getRequestURI(),
                         "VALIDATION_FAILED", List.of()));
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException exception,
+            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        if (exception instanceof MethodArgumentTypeMismatchException mismatch
+                && mismatch.getRequiredType() == UUID.class
+                && mismatch.getParameter().hasParameterAnnotation(PathVariable.class)) {
+            return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                    .body(new ProblemDetailResponse("about:blank", "Validation failed", 400,
+                            "The resource identifier is invalid.", ((ServletWebRequest) request).getRequest().getRequestURI(),
+                            "VALIDATION_FAILED", List.of()));
+        }
+        return super.handleTypeMismatch(exception, headers, status, request);
     }
 
     @ExceptionHandler(Exception.class)
