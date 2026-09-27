@@ -1,0 +1,33 @@
+<section aria-labelledby="discussions-heading">
+  <div class="section-heading"><h2 id="discussions-heading">Razprave</h2>
+    <button #createButton class="button primary" (click)="create(createButton)" [disabled]="auth.isChecking() || auth.logoutPending()">Začni razpravo</button>
+  </div>
+  @if (loading()) {
+    <div class="loading" role="status" aria-busy="true">Nalaganje razprav …
+      @for (item of [0,1,2]; track item) { <div class="skeleton" aria-hidden="true"></div> }
+    </div>
+  } @else if (error()) {
+    <div class="error-box" role="alert"><p>Razprav ni bilo mogoče naložiti.</p><p>{{ error() }}</p>
+      <button class="button ghost" (click)="load()">Poskusi znova</button></div>
+  } @else {
+    <div class="stack">
+      @for (discussion of result()?.items; track discussion.id) { <app-discussion-card [discussion]="discussion" /> }
+      @empty { <div class="panel empty"><h3>Ta država še nima razprav.</h3><p>Začni prvi pogovor.</p>
+        <button #emptyCreate class="button primary" (click)="create(emptyCreate)">Začni razpravo</button></div> }
+    </div>
+  }
+  @if (result(); as result) {
+    <app-community-pagination [page]="result.page" [totalPages]="result.totalPages" [loading]="loading()"
+      label="Strani razprav" (changePage)="load($event)" />
+  }
+</section>
+@if (editor(); as trigger) {
+  <app-discussion-editor [countryCode]="countryCode()" [countryName]="countryName()" [trigger]="trigger"
+    (closed)="editor.set(null)" (saved)="created($event)" />
+}
+@if (prompt(); as context) {
+  <app-auth-required-prompt [trigger]="context.trigger" [returnUrl]="context.returnUrl"
+    message="Prijavi se ali ustvari račun, da začneš razpravo."
+    (proceed)="intent.armCommunity('newDiscussion', countryCode(), context.returnUrl)"
+    (cancelled)="intent.clear()" (closed)="prompt.set(null)" />
+}

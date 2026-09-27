@@ -5,6 +5,8 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', component: CountryExplorer, title: 'Razišči države · Country Explorer' },
   { path: 'countries/:code', title: 'Podatki o državi · Country Explorer',
     loadComponent: () => import('./features/countries/pages/country-detail').then(m => m.CountryDetail) },
+  { path: 'discussions/:discussionId', title: 'Razprava · Country Explorer',
+    loadComponent: () => import('./features/community/pages/discussion-page').then(m => m.DiscussionPage) },
   { path: 'login', title: 'Prijava · Country Explorer', canActivate: [anonymousGuard],
     loadComponent: () => import('./features/auth/login/login').then(m => m.Login) },
   { path: 'register', title: 'Ustvari račun · Country Explorer', canActivate: [anonymousGuard],

@@ -1,0 +1,25 @@
+<article class="panel">
+  <span class="avatar" aria-hidden="true">{{ comment().author.username.slice(0, 2).toLocaleUpperCase('sl-SI') }}</span>
+  <div>
+    <div class="metadata"><strong>{{ comment().author.username }}</strong>
+      @if (owner()) { <span class="chip">Vi</span> }
+      <app-community-time [createdAt]="comment().createdAt" [updatedAt]="comment().updatedAt" />
+    </div>
+    @if (editing()) {
+      <app-comment-form [discussionId]="comment().discussionId" [comment]="comment()" (saved)="edited($event)"
+        (cancelled)="cancelEdit()" (unavailable)="failed($event)" />
+    } @else {
+      <p class="prose">{{ comment().body }}</p>
+      @if (owner()) { <div class="actions">
+        <button #editButton class="button ghost" (click)="editing.set(true)">Uredi</button>
+        <button #deleteButton class="button ghost" (click)="error.set(''); deletion.set(deleteButton)">Izbriši</button>
+      </div> }
+    }
+  </div>
+</article>
+@if (deletion(); as trigger) {
+  @if (owner()) {
+    <app-delete-confirmation [trigger]="trigger" [pending]="pending()" [error]="error()"
+      (cancelled)="deletion.set(null)" (confirmed)="remove()" />
+  }
+}

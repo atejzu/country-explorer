@@ -1,0 +1,41 @@
+@if (missing()) {
+  <section class="panel empty"><h1 #heading tabindex="-1">Razprave ni bilo mogoče najti.</h1>
+    <p>Morda je bila izbrisana ali pa povezava ni veljavna.</p><a class="button primary" routerLink="/">Nazaj na raziskovanje</a></section>
+} @else {
+  @if (discussion(); as discussion) {
+    <a class="back" [routerLink]="['/countries', discussion.countryCode]">← Nazaj na državo {{ discussion.countryCode }}</a>
+    <article>
+      <span class="chip">{{ discussion.countryCode }}</span>
+      @if (discussion.locked || lockConfirmed()) { <span class="chip">Urejanje zaklenjeno</span> }
+      <h1 #heading tabindex="-1">{{ discussion.title }}</h1>
+      <div class="metadata"><span>{{ discussion.author.username }}</span>
+        <app-community-time [createdAt]="discussion.createdAt" [updatedAt]="discussion.updatedAt" />
+        <span>Komentarji: {{ discussion.commentCount }}</span>
+      </div>
+      <div class="prose">{{ discussion.body }}</div>
+      @if (discussion.locked || lockConfirmed()) { <p class="notice">{{ lockMessage }} <strong>Komentarji ostajajo odprti.</strong></p> }
+      @if (editable()) { <div class="actions">
+        <button #editButton class="button ghost" (click)="edit(editButton)">Uredi</button>
+        <button #deleteButton class="button ghost" (click)="deleteError.set(''); deletion.set(deleteButton)">Izbriši</button>
+      </div> }
+    </article>
+  } @else if (loading()) {
+    <section class="loading" aria-busy="true"><h1>Nalaganje razprave …</h1>
+      @for (item of [0,1,2]; track item) { <div class="skeleton" aria-hidden="true"></div> }
+    </section>
+  } @else { <h1>Razprave ni bilo mogoče naložiti.</h1> }
+  @if (error()) { <div class="error-box" role="alert"><p>{{ error() }}</p><button class="button ghost" (click)="load()">Poskusi znova</button></div> }
+  @for (discussionId of [id()]; track discussionId) {
+    <app-comment-list [discussionId]="discussionId" [contextAvailable]="discussion() !== null" [commentCount]="discussion()?.commentCount ?? null" (changed)="load()" />
+  }
+}
+@if (editor(); as context) {
+  <app-discussion-editor [countryCode]="context.discussion.countryCode" [discussion]="context.discussion" [trigger]="context.trigger"
+    [blocked]="!editable()" (saved)="edited($event)" (closed)="editor.set(null)" (unavailable)="unavailable($event)" />
+}
+@if (deletion(); as trigger) {
+  @if (editable()) {
+    <app-delete-confirmation [discussionTitle]="discussion()!.title" [trigger]="trigger" [pending]="pending()" [error]="deleteError()"
+      (confirmed)="remove()" (cancelled)="deletion.set(null)" />
+  }
+}

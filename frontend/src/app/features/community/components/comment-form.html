@@ -1,0 +1,20 @@
+<form novalidate (submit)="onSubmit($event)" [attr.aria-busy]="fields().submitting()">
+  @let fieldId = comment() ? 'edit-comment-' + comment()!.id : 'comment-body';
+  <label [for]="fieldId">{{ comment() ? 'Uredi komentar' : 'Dodaj komentar' }}</label>
+  <textarea #textarea [id]="fieldId" [formField]="fields.body" (input)="draftChanged.emit(textarea.value)" placeholder="Napiši svoj komentar …"
+    [readOnly]="fields().submitting() || !canSubmit()"
+    [attr.aria-describedby]="fieldId + '-help ' + fieldId + '-errors'"
+    [attr.aria-invalid]="fields.body().touched() && fields.body().invalid()"></textarea>
+  <p class="caption" [id]="fieldId + '-help'">Največ 2.000 znakov.</p>
+  <div [id]="fieldId + '-errors'" aria-live="polite">@if (fields.body().touched()) {
+    @for (error of fields.body().errors(); track $index) { <p class="field-error">{{ error.message }}</p> }
+  }</div>
+  @if (!comment() && auth.isAuthenticated()) { <p class="caption">Objavljaš kot {{ auth.user()?.username }}</p> }
+  @if (!canSubmit()) { <p class="notice">Shranjevanje ni na voljo. Besedilo lahko kopiraš.</p> }
+  @if (error()) { <p class="error-box" role="alert">{{ error() }}</p> }
+  <div class="actions"><button type="submit" class="button primary" [disabled]="fields().submitting() || !canSubmit()">
+    {{ fields().submitting() ? (comment() ? 'Shranjevanje …' : 'Objavljanje komentarja …') : (comment() ? 'Shrani spremembe' : 'Objavi komentar') }}
+  </button>
+  @if (comment()) { <button type="button" class="button ghost" [disabled]="fields().submitting()" (click)="cancelled.emit()">Prekliči</button> }
+  </div>
+</form>

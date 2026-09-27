@@ -9,9 +9,10 @@ import { CountryApi } from '../data-access/country-api';
 import { CountryLoadState, countryFailure } from '../data-access/country-load-state';
 import { CountryCurrency, CountryLanguage, CountrySummary, CountryDetail as CountryDetailModel } from '../models/country';
 import { displayName, drivingSideLabel, regionLabel, subregionLabel } from '../models/country-labels';
+import { DiscussionList } from '../../community/components/discussion-list';
 import { FavoriteButton } from '../../favorites/favorite-button/favorite-button';
 import { CountryMap } from '../components/country-map';
-@Component({ selector: 'app-country-detail', imports: [DecimalPipe, RouterLink, CountryMap, FavoriteButton],
+@Component({ selector: 'app-country-detail', imports: [DecimalPipe, RouterLink, CountryMap, FavoriteButton, DiscussionList],
   templateUrl: './country-detail.html', styleUrl: './country-detail.scss' })
 export class CountryDetail {
   private readonly api = inject(CountryApi);

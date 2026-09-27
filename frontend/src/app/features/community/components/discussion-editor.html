@@ -1,0 +1,32 @@
+<app-modal #modal [title]="discussion() ? 'Uredi razpravo' : 'Začni razpravo'" [trigger]="trigger()"
+  [pending]="fields().submitting()" (closed)="closed.emit()">
+  <p class="muted">{{ countryName() || countryCode() }}</p>
+  <form novalidate (submit)="onSubmit($event)" [attr.aria-busy]="fields().submitting()">
+    <fieldset [disabled]="fields().submitting()">
+      <div class="field"><label for="discussion-title">Naslov</label>
+        <input autofocus id="discussion-title" [formField]="fields.title" [readOnly]="disabled()"
+          aria-describedby="discussion-title-help discussion-title-errors" [attr.aria-invalid]="fields.title().touched() && fields.title().invalid()">
+        <p class="caption" id="discussion-title-help">5–150 znakov.</p>
+        <div id="discussion-title-errors" aria-live="polite">@if (fields.title().touched()) {
+          @for (error of fields.title().errors(); track $index) { <p class="field-error">{{ error.message }}</p> }
+        }</div>
+      </div>
+      <div class="field"><label for="discussion-body">Vsebina</label>
+        <textarea id="discussion-body" [formField]="fields.body" [readOnly]="disabled()"
+          aria-describedby="discussion-body-help discussion-body-errors" [attr.aria-invalid]="fields.body().touched() && fields.body().invalid()"></textarea>
+        <p class="caption" id="discussion-body-help">Največ 5.000 znakov.</p>
+        <div id="discussion-body-errors" aria-live="polite">@if (fields.body().touched()) {
+          @for (error of fields.body().errors(); track $index) { <p class="field-error">{{ error.message }}</p> }
+        }</div>
+      </div>
+    </fieldset>
+    @if (error()) { <p class="error-box" role="alert">{{ error() }}</p> }
+    @if (disabled()) { <p class="notice">Shranjevanje ni na voljo. Besedilo lahko kopiraš.</p> }
+    <div class="actions">
+      <button type="submit" class="button primary" [disabled]="disabled() || fields().submitting()">
+        {{ fields().submitting() ? (discussion() ? 'Shranjevanje …' : 'Ustvarjanje razprave …') : (discussion() ? 'Shrani spremembe' : 'Ustvari razpravo') }}
+      </button>
+      <button type="button" class="button ghost" [disabled]="fields().submitting()" (click)="modal.close()">Prekliči</button>
+    </div>
+  </form>
+</app-modal>

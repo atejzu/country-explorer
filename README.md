@@ -8,8 +8,11 @@ session authentication. Favourites now include backend persistence and the Angul
 authenticated users can add, remove and view saved countries at `/favorites`.
 Explorer cards and country details share optimistic favourite state with rollback
 on failure. Guest favourite actions preserve the complete safe `returnUrl`; a chosen
-action can complete once after confirmed login. The community backend is implemented;
-the Angular community UI remains pending Phase 5B.
+action can complete once after confirmed login. Phase 5B adds public country
+discussions and discussion detail with paginated comments.
+Authenticated users can create content and edit/delete their own eligible content.
+The first comment permanently locks discussion editing/deletion; commenting and
+comment-owner actions remain available, including after every comment is deleted.
 
 **Stack:** Java 21, Spring Boot 4.1.1, Maven Wrapper, PostgreSQL 17, Flyway,
 Angular 22, Node.js 24.15.0, npm, Vitest and Docker Compose. Nginx serves the
@@ -156,8 +159,35 @@ discussion owners receive `409 DISCUSSION_LOCKED`.
 Lists return `{items, page, size, totalItems, totalPages}` with zero-based pages.
 Discussions are newest first (default 10, maximum 50); comments are oldest first
 (default 20, maximum 100), with UUID tie-breakers. Comment counts are derived;
-public authors contain only ID and username. Angular community screens are pending
-Phase 5B.
+public authors contain only ID and username. Angular reads the backend lock flag;
+it never derives the discussion lifecycle from comment counts.
+
+## Angular community
+
+Country details load discussions independently of facts and the map, with 10 items
+per page. `/discussions/:discussionId` is public and works on direct navigation;
+discussion metadata and comments load independently. Comments use 20 items per
+page, oldest first. Deleting the final item on a later page returns to a valid page.
+
+Discussion creation uses a focused native dialog. Discussion and comment editing
+stay on the same route, use Signal Forms and preserve drafts on recoverable errors.
+Delete actions require confirmation. Community mutations wait for the server;
+comment creation/deletion then refreshes authoritative discussion counts and lock
+state. A concurrent `DISCUSSION_LOCKED` response disables the editor, preserves a
+copyable draft, refreshes metadata and explains the permanent lock.
+
+Guests see the same creation capabilities through the shared authentication prompt.
+One memory-only protected-action intent supports favourites, opening a discussion
+editor and focusing the comment field. Normal login/register links preserve the
+complete safe return URL, including query and fragment. After actual login the UI
+continuation runs at most once; discussions/comments are never submitted automatically.
+Cancellation, logout and session expiry clear intents; modified and middle clicks
+do not arm actions in the original tab. Registration still requires a subsequent login.
+
+Community content uses escaped text with preserved line breaks, Slovenian date
+formatting and public usernames only. Owner controls follow the current session.
+Local loading/error states, accessible pagination, native confirmation dialogs,
+focus restoration and wrapping layouts reuse the existing design system.
 
 ## Angular authentication
 
@@ -184,7 +214,7 @@ anonymous CSRF and returns home, including when the session has already expired.
 Unexpected session expiry clears the signed-in navigation and displays a brief
 notification. No JWT, credential persistence or browser token storage is used.
 Favourites navigation remains visible to guests and uses the existing auth guard.
-Pending favourite actions stay in memory and are discarded on cancellation, session
+Pending protected actions stay in memory and are discarded on cancellation, session
 expiry, logout or an unconfirmed login; failed requests are never automatically replayed.
 
 ## Development and tests

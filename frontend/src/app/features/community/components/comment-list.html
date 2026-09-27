@@ -1,0 +1,41 @@
+@if (contextAvailable()) {
+<section aria-labelledby="comments-heading">
+  <h2 #heading id="comments-heading" tabindex="-1">Komentarji @if (commentCount() !== null) { <span class="caption">{{ commentCount() }}</span> }</h2>
+  @if (auth.isAuthenticated() || draft()) {
+    <app-comment-form [discussionId]="discussionId()" (draftChanged)="draft.set($event)" (saved)="created()" (unavailable)="unavailable($event)" />
+  }
+  @if (!auth.isAuthenticated()) {
+    <div class="notice stack"><p>Za sodelovanje v razpravi se prijavi.</p><p>Postavi vprašanje ali deli svoje mnenje.</p>
+      <div><button #joinButton class="button primary" [disabled]="auth.isChecking() || auth.logoutPending()" (click)="join(joinButton)">Dodaj komentar</button></div>
+    </div>
+  }
+  @if (loading() && !result()) {
+    <div class="loading" role="status" aria-busy="true">Nalaganje komentarjev …
+      @for (item of [0,1,2]; track item) { <div class="skeleton" aria-hidden="true"></div> }
+    </div>
+  } @else if (loading()) { <p role="status">Osveževanje komentarjev …</p> }
+  @if (error()) {
+    <div class="error-box" role="alert"><p>Komentarjev ni bilo mogoče naložiti.</p><p>{{ error() }}</p>
+      <button class="button ghost" (click)="load()">Poskusi znova</button></div>
+  }
+  @if (result()) {
+    <div class="stack">
+      @for (comment of result()?.items; track comment.id) {
+        <app-comment-item [comment]="comment" [ownershipBlocked]="deniedIds().has(comment.id)" (updated)="updated($event)" (deleted)="deleted(comment.id)" (unavailable)="unavailable($event, comment.id)" />
+      } @empty {
+        @if (!loading() && !error()) { <div class="panel empty"><h3>Komentarjev še ni.</h3><p>Bodi prvi, ki odgovori.</p></div> }
+      }
+    </div>
+  }
+  @if (result(); as result) {
+    <app-community-pagination [page]="result.page" [totalPages]="result.totalPages" [loading]="loading()"
+      label="Strani komentarjev" (changePage)="load($event)" />
+  }
+</section>
+@if (prompt(); as context) {
+  <app-auth-required-prompt [trigger]="context.trigger" [returnUrl]="context.returnUrl"
+    message="Prijavi se ali ustvari račun, da sodeluješ v razpravi."
+    (proceed)="intent.armCommunity('comment', discussionId(), context.returnUrl)"
+    (cancelled)="intent.clear()" (closed)="prompt.set(null)" />
+}
+}
