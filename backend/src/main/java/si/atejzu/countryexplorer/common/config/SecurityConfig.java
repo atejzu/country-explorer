@@ -52,6 +52,9 @@ public class SecurityConfig {
                                 "/api/v1/countries", "/api/v1/countries/{countryCode}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/me/favorites").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/users/me/favorites/{countryCode}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/me/favorites/{countryCode}").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").authenticated()
                         .anyRequest().denyAll())
                 // Security 7's documented SPA handler supports plain headers and BREACH-aware attributes.

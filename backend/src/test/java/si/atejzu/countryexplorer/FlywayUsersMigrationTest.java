@@ -26,7 +26,7 @@ class FlywayUsersMigrationTest {
             assertThat(result.getInt(1)).isZero();
         }
         var current = Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
-                .locations("classpath:db/migration").load();
+                .locations("classpath:db/migration").target("1").load();
         assertThat(current.migrate().migrationsExecuted).isEqualTo(1);
         assertThat(current.migrate().migrationsExecuted).isZero();
         current.validate();

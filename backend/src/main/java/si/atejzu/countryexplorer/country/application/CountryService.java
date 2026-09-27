@@ -2,8 +2,11 @@ package si.atejzu.countryexplorer.country.application;
 
 import java.text.Collator;
 import java.util.Comparator;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.springframework.cache.Cache;
@@ -43,9 +46,28 @@ public class CountryService {
     }
 
     public CountryDetail detail(String countryCode) {
-        if (countryCode == null || !countryCode.matches("[A-Za-z]{3}")) throw new CountryNotFoundException();
-        String code = countryCode.toUpperCase(Locale.ROOT);
+        String code = normalizeCode(countryCode);
         return cached(details, code, () -> client.detail(code));
+    }
+
+    public Map<String, CountrySummary> summaries(Collection<String> countryCodes) {
+        var codes = countryCodes.stream().map(CountryService::normalizeCode).distinct().toList();
+        if (codes.isEmpty()) return Map.of();
+        List<CountrySummary> countries = cached(catalogue, "all", client::catalogue);
+        var byCode = new HashMap<String, CountrySummary>();
+        countries.forEach(country -> byCode.put(country.code(), country));
+        var resolved = new HashMap<String, CountrySummary>();
+        for (String code : codes) {
+            var country = byCode.get(code);
+            if (country == null) throw new CountryNotFoundException();
+            resolved.put(code, country);
+        }
+        return Map.copyOf(resolved);
+    }
+
+    public static String normalizeCode(String countryCode) {
+        if (countryCode == null || !countryCode.matches("[A-Za-z]{3}")) throw new CountryNotFoundException();
+        return countryCode.toUpperCase(Locale.ROOT);
     }
 
     private boolean matches(CountrySummary country, String search) {

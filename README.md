@@ -4,7 +4,8 @@ Petrol programming assignment. Phase 2B implements the Slovenian country explore
 search, region filtering, name/population sorting, country details and a Leaflet /
 OpenStreetMap map. Explorer state is shareable through URL query parameters.
 Phase 3B connects Angular login, registration and account pages to the backend's
-session authentication. Favourites and community features are not implemented yet.
+session authentication. Phase 4A adds the backend favourites API and persistence.
+Angular favourites UI is pending Phase 4B; community remains pending.
 
 **Stack:** Java 21, Spring Boot 4.1.1, Maven Wrapper, PostgreSQL 17, Flyway,
 Angular 22, Node.js 24.15.0, npm, Vitest and Docker Compose. Nginx serves the
@@ -31,7 +32,8 @@ docker compose up --build
 
 Open **http://localhost:8080**. Health: http://localhost:8081/actuator/health.
 Country GET endpoints, health and auth bootstrap/registration/login are public.
-Current-user and logout require authentication; future backend routes remain denied.
+Current-user, favourites and logout require authentication; future backend routes
+remain denied.
 Actuator is not proxied through the frontend. PostgreSQL has no published
 host port, and application/diagnostic ports bind to localhost.
 
@@ -41,9 +43,10 @@ and health checks; country requests return `503 COUNTRY_SERVICE_UNAVAILABLE`.
 No credentials are passed into frontend builds. Keep `.env` private and untracked.
 `FRONTEND_ORIGIN` remains reserved for later integration.
 
-Flyway runs `V1__create_users.sql` on startup: the `users` table has UUID IDs,
-UTC timestamps and case-insensitive unique username/email indexes. Hibernate uses
-`validate`. Passwords use Spring Security's versioned delegating encoder with
+Flyway runs `V1__create_users.sql` and `V2__create_favorite_countries.sql` on startup.
+The `users` table has UUID IDs, UTC timestamps and case-insensitive unique
+username/email indexes. Hibernate uses `validate`. Passwords use Spring Security's
+versioned delegating encoder with
 `pbkdf2@SpringSecurity_v5_8` for new accounts. Passwords require 8–72 characters
 without composition rules or an additional UTF-8 byte limit. No default account
 is provided.
@@ -75,7 +78,8 @@ Official names use Slovenian native names when available, otherwise canonical na
 Search matches both application display names and canonical names.
 Country data stays in memory: the complete projected catalogue and individual
 country details have separate Caffeine caches with a default 24-hour TTL.
-Country records are not stored in PostgreSQL; user accounts are persisted there.
+Country records are not stored in PostgreSQL; user accounts and favourite references
+are persisted there.
 Errors use Problem Details with stable `code` values.
 
 Backend configuration supports `REST_COUNTRIES_BASE_URL`,
@@ -107,6 +111,21 @@ login/logout. Only the XSRF cookie is JavaScript-readable. Spring Security's SPA
 handling retains BREACH protection. Security errors use `application/problem+json`;
 CSRF and authorization failures return `403 ACCESS_DENIED`. The same-origin proxy
 requires no CORS configuration.
+
+## Backend favourites
+
+- `GET /api/v1/users/me/favorites`: own favourites, each with the explorer's
+  `CountrySummaryResponse` under `country` and the stored `favoritedAt` timestamp.
+- `PUT /api/v1/users/me/favorites/{countryCode}`: add a valid country, `204`.
+- `DELETE /api/v1/users/me/favorites/{countryCode}`: remove it, `204`.
+
+All three require authentication; PUT and DELETE require CSRF. Codes accept either
+case. Add/delete are idempotent, including concurrent duplicate adds; repeated adds
+preserve the original timestamp. PostgreSQL stores only a UUID, owner, country code
+and timestamp. CountryService validates new favourites and enriches lists from the
+cached catalogue, without a detail request per favourite. Country failures use the
+existing `404 COUNTRY_NOT_FOUND` / `503 COUNTRY_SERVICE_UNAVAILABLE` errors.
+Angular favourites UI remains pending Phase 4B; community is not implemented.
 
 ## Angular authentication
 

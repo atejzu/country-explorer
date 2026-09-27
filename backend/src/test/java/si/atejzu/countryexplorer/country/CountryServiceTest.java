@@ -8,10 +8,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import si.atejzu.countryexplorer.country.application.CountryQuery;
 import si.atejzu.countryexplorer.country.application.CountryService;
+import si.atejzu.countryexplorer.country.application.CountryNotFoundException;
+import si.atejzu.countryexplorer.country.application.CountryServiceUnavailableException;
 import si.atejzu.countryexplorer.country.domain.CountrySummary;
 import si.atejzu.countryexplorer.country.infrastructure.restcountries.RestCountriesClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class CountryServiceTest {
@@ -41,6 +44,47 @@ class CountryServiceTest {
         assertThat(service.list(new CountryQuery("   ", null, null, null))).hasSize(4);
         assertThat(service.list(new CountryQuery(null, null, null, null))).hasSize(4);
         verify(client, times(1)).catalogue();
+    }
+
+    @Test
+    void bulkSummariesNormalizeExactCodesAndShareExplorerCatalogue() {
+        var summaries = service.summaries(List.of("svn", "CHE", "SVN"));
+        assertThat(summaries).containsOnlyKeys("SVN", "CHE");
+        assertThat(summaries.get("SVN").name()).isEqualTo("Slovenija");
+        service.list(new CountryQuery(null, null, null, null));
+        service.summaries(List.of("CZE"));
+        verify(client, times(1)).catalogue();
+        verify(client, never()).detail(anyString());
+    }
+
+    @Test
+    void emptySummaryRequestDoesNotLoadCatalogue() {
+        assertThat(service.summaries(List.of())).isEmpty();
+        verifyNoInteractions(client);
+    }
+
+    @Test
+    void missingExactCodeRejectsEntireBulkResultWithoutFuzzyMatching() {
+        when(client.catalogue()).thenReturn(List.of(country("SVN", "ZZZ", "ZZZ", 1L, "Europe")));
+        assertThatThrownBy(() -> service.summaries(List.of("SVN", "ZZZ")))
+                .isInstanceOf(CountryNotFoundException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"SI", "123", "Slovenia", "ſvn", "ŠVN", " svn"})
+    void malformedSummaryCodeFailsBeforeUpstream(String code) {
+        assertThatThrownBy(() -> service.summaries(List.of(code))).isInstanceOf(CountryNotFoundException.class);
+        verifyNoInteractions(client);
+    }
+
+    @Test
+    void unavailableSummaryCatalogueIsNotCachedAndCanRecover() {
+        when(client.catalogue()).thenThrow(new CountryServiceUnavailableException())
+                .thenReturn(List.of(country("SVN", "Slovenija", "Slovenia", 1L, "Europe")));
+        assertThatThrownBy(() -> service.summaries(List.of("SVN")))
+                .isInstanceOf(CountryServiceUnavailableException.class);
+        assertThat(service.summaries(List.of("SVN"))).containsOnlyKeys("SVN");
+        verify(client, times(2)).catalogue();
     }
 
     @Test
