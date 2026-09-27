@@ -1,0 +1,44 @@
+<div class="page-heading"><h1>Razišči države</h1>
+  <p class="muted">Odkrij ključne podatke, primerjaj regije in odpri državo za več podrobnosti.</p></div>
+<div class="filters" role="search" aria-label="Iskanje držav">
+  <div class="field"><label for="search">Išči države</label>
+    <input #searchInput id="search" type="search" placeholder="Išči po imenu države …"
+      [value]="searchDraft()" (input)="search(searchInput.value)"></div>
+  <div class="field"><label for="region">Regija</label>
+    <select #region id="region" [value]="query().region" (change)="filter(region.value)">
+      <option value="" [selected]="query().region === ''">Vse regije</option>
+      @for (value of regions; track value) { <option [value]="value" [selected]="query().region === value">{{ labels[value] }}</option> }
+    </select></div>
+  <div class="field"><label for="sort">Razvrsti</label>
+    <select #sortInput id="sort" [value]="query().sort + '-' + query().direction" (change)="sort(sortInput.value)">
+      <option value="name-asc">Ime A–Ž</option><option value="name-desc">Ime Ž–A</option>
+      <option value="population-desc">Prebivalstvo: največje najprej</option>
+      <option value="population-asc">Prebivalstvo: najmanjše najprej</option>
+    </select></div>
+</div>
+@let result = state();
+<div class="results"><p role="status" aria-live="polite">
+  @switch (result.status) {
+    @case ('loading') { Nalaganje držav … }
+    @case ('success') { Število držav: {{ result.data.length | number }}@if (query().search) { · Iskanje: »{{ query().search }}« } }
+    @case ('error') { Podatkov o državah ni bilo mogoče naložiti. }
+  }
+</p>
+@if (changed()) { <button class="button ghost" (click)="clear()">Počisti filtre</button> }
+</div>
+@switch (result.status) {
+  @case ('loading') { <div class="country-grid" aria-busy="true" aria-label="Nalaganje držav">
+    @for (skeleton of skeletons; track skeleton) { <app-country-skeleton /> }
+  </div> }
+  @case ('success') {
+    @if (result.data.length) { <div class="country-grid">
+      @for (country of result.data; track country.code) { <app-country-card [country]="country" /> }
+    </div> } @else { <section class="panel empty"><h2>Nobena država ne ustreza filtrom.</h2>
+      <p>Poskusi drugo ime ali izberi drugo regijo.</p>
+      @if (changed()) { <button class="button primary" (click)="clear()">Počisti filtre</button> }
+    </section> }
+  }
+  @case ('error') { <section class="panel empty"><h2>Podatki o državah trenutno niso na voljo.</h2>
+    <p>{{ result.failure === 'invalid-query' ? 'Preveri izbrane filtre in poskusi znova.' : 'Pri nalaganju je prišlo do težave. Poskusi znova.' }}</p>
+    <button class="button primary" (click)="retry.next()">Poskusi znova</button></section> }
+}

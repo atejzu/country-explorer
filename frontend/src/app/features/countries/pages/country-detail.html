@@ -1,0 +1,78 @@
+<a class="back" routerLink="/"><span aria-hidden="true">←</span> Nazaj na raziskovanje</a>
+@let result = state();
+<div aria-live="polite" class="visually-hidden" role="status">
+  @switch (result.status) {
+    @case ('loading') { Nalaganje države … }
+    @case ('success') { Podatki o državi {{ result.data.name }} so naloženi. }
+    @case ('error') { Podatkov o državi ni bilo mogoče naložiti. }
+  }
+</div>
+@switch (result.status) {
+  @case ('loading') {
+    <section class="panel detail" aria-busy="true"><h1>Nalaganje države …</h1>
+      <div class="loading-facts" aria-hidden="true">
+        @for (item of [0,1,2,3,4,5,6,7]; track item) { <div class="skeleton"></div> }
+      </div>
+    </section>
+  }
+  @case ('error') {
+    <section class="panel empty">
+      @if (result.failure === 'not-found') {
+        <h1>Države ni bilo mogoče najti.</h1><p>Koda države morda ni veljavna ali pa država ni na voljo.</p>
+      } @else {
+        <h1>{{ result.failure === 'unavailable' ? 'Podatki o državi trenutno niso na voljo.' : 'Podatkov o državi ni bilo mogoče naložiti.' }}</h1>
+        <p>Pri nalaganju je prišlo do težave. Poskusi znova.</p>
+        <button class="button primary" (click)="retry.next()">Poskusi znova</button>
+      }
+    </section>
+  }
+  @case ('success') {
+    @let country = result.data;
+    <section class="panel detail">
+      <header class="identity">
+        @if (country.flag.svg || country.flag.png; as source) {
+          <img class="flag" [src]="source" [alt]="country.flag.alt" width="72" height="48">
+        }
+        <div><h1>{{ country.name }}</h1>
+          @if (country.officialName) { <p class="muted">{{ country.officialName }}</p> }
+          <p class="caption">{{ country.code }}</p>
+        </div>
+      </header>
+      <dl class="detail-data">
+        @if (country.capital.length) { <div><dt>Glavno mesto</dt><dd>{{ country.capital.join(', ') }}</dd></div> }
+        @if (country.population !== null) { <div><dt>Prebivalstvo</dt><dd>{{ country.population | number }}</dd></div> }
+        @if (country.area !== null) { <div><dt>Površina</dt><dd>{{ country.area | number }} km²</dd></div> }
+        @if (country.populationDensity !== null) { <div><dt>Gostota prebivalstva</dt><dd>{{ country.populationDensity | number:'1.0-2' }} preb./km²</dd></div> }
+        @if (country.region) { <div><dt>Regija</dt><dd>{{ regionLabel(country.region) }}</dd></div> }
+        @if (country.subregion) { <div><dt>Podregija</dt><dd>{{ subregionLabel(country.subregion) }}</dd></div> }
+        @let languages = languageLabels(country.languages);
+        @if (languages.length) { <div><dt>Jeziki</dt><dd>
+          @for (language of languages; track $index) { <span class="metadata-item">{{ language }}</span> }
+        </dd></div> }
+        @let currencies = currencyLabels(country.currencies);
+        @if (currencies.length) { <div><dt>Valute</dt><dd>
+          @for (currency of currencies; track $index) { <span class="metadata-item">{{ currency }}</span> }
+        </dd></div> }
+      </dl>
+    </section>
+    <div class="facts-layout">
+      <section class="panel"><h2>Praktični podatki</h2>
+        <dl class="practical-data">
+          @if (country.timezones.length) { <div><dt>Časovni pasovi</dt><dd>{{ country.timezones.join(', ') }}</dd></div> }
+          @if (country.callingCodes.length) { <div><dt>Klicne kode</dt><dd>{{ country.callingCodes.join(', ') }}</dd></div> }
+          @if (country.drivingSide) { <div><dt>Stran vožnje</dt><dd>{{ drivingSideLabel(country.drivingSide) }}</dd></div> }
+          <div><dt>Mejne države</dt><dd>
+            @for (code of country.borders; track code) { <a class="border-link" [routerLink]="['/countries', code]">{{ code }}</a> }
+            @empty { Podatki o mejnih državah niso na voljo. }
+          </dd></div>
+        </dl>
+      </section>
+      <section class="panel map-panel"><h2>Geografska lega</h2>
+        @if (validCoordinates(country.coordinates)) {
+          <app-country-map [latitude]="country.coordinates.latitude" [longitude]="country.coordinates.longitude" [countryName]="country.name" />
+          <p class="caption">Zemljepisna širina: {{ country.coordinates.latitude | number:'1.0-4' }}° · Zemljepisna dolžina: {{ country.coordinates.longitude | number:'1.0-4' }}°</p>
+        } @else { <p class="muted">Koordinate za prikaz zemljevida niso na voljo.</p> }
+      </section>
+    </div>
+  }
+}

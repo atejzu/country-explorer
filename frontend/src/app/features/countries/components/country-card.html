@@ -1,0 +1,14 @@
+<article class="country panel">
+  @if (country().flag.svg || country().flag.png; as source) {
+    <img class="flag" [src]="source" [alt]="country().flag.alt" width="48" height="32" loading="lazy">
+  }
+  <div><h2>{{ country().name }}</h2><p class="caption">{{ country().code }}</p></div>
+  <dl class="facts">
+    <div><dt>Glavno mesto</dt><dd>{{ country().capital || 'Ni podatka' }}</dd></div>
+    <div><dt>Prebivalstvo</dt><dd>{{ country().population === null ? 'Ni podatka' : (country().population | number) }}</dd></div>
+    <div><dt>Regija</dt><dd>{{ regionLabel(country().region) }}</dd></div>
+  </dl>
+  <footer><span class="chip">{{ regionLabel(country().region) }}</span>
+    <a [routerLink]="['/countries', country().code]" [attr.aria-label]="'Ogled države: ' + country().name">Ogled države <span aria-hidden="true">→</span></a>
+  </footer>
+</article>

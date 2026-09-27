@@ -1,8 +1,9 @@
 # Country Explorer
 
-Petrol programming assignment. Phase 2A adds the backend country-data core to
-the runnable foundation and minimal Slovenian application shell. Frontend country
-pages, accounts and community features are not implemented yet.
+Petrol programming assignment. Phase 2B implements the Slovenian country explorer:
+search, region filtering, name/population sorting, country details and a Leaflet /
+OpenStreetMap map. Explorer state is shareable through URL query parameters.
+Accounts, favourites and community features are not implemented yet.
 
 **Stack:** Java 21, Spring Boot 4.1.1, Maven Wrapper, PostgreSQL 17, Flyway,
 Angular 22, Node.js 24.15.0, npm, Vitest and Docker Compose. Nginx serves the
@@ -49,6 +50,14 @@ docker compose logs -f backend
 docker compose down       # Stop services; preserve database volume.
 docker compose down -v    # Destructive reset: delete the database volume too.
 ```
+
+## Country frontend
+
+`/` provides country cards and explicit loading, empty and retry states.
+`/countries/:code` loads full details independently, with a country-specific 404.
+Search updates the URL after 300 ms; navigation cancels stale requests. All country
+data comes through Spring Boot. Maps use standard OpenStreetMap tiles; flags use
+the image URLs provided by the API. No upstream key is needed for frontend tests.
 
 ## Country API
 
