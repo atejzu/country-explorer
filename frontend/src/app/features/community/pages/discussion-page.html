@@ -5,15 +5,16 @@
   @if (discussion(); as discussion) {
     <a class="back" [routerLink]="['/countries', discussion.countryCode]">← Nazaj na državo {{ discussion.countryCode }}</a>
     <article>
-      <span class="chip">{{ discussion.countryCode }}</span>
-      @if (discussion.locked || lockConfirmed()) { <span class="chip">Urejanje zaklenjeno</span> }
+      <div class="chip-row"><span class="chip">{{ discussion.countryCode }}</span>
+        @if (auth.user()?.id === discussion.author.id && discussion.locked) { <span class="chip">Urejanje zaklenjeno</span> }
+      </div>
       <h1 #heading tabindex="-1">{{ discussion.title }}</h1>
       <div class="metadata"><span>{{ discussion.author.username }}</span>
         <app-community-time [createdAt]="discussion.createdAt" [updatedAt]="discussion.updatedAt" />
         <span>Komentarji: {{ discussion.commentCount }}</span>
       </div>
       <div class="prose">{{ discussion.body }}</div>
-      @if (discussion.locked || lockConfirmed()) { <p class="notice">{{ lockMessage }} <strong>Komentarji ostajajo odprti.</strong></p> }
+      @if (auth.user()?.id === discussion.author.id && discussion.locked) { <p class="notice">{{ lockMessage }} <strong>Komentarji ostajajo odprti.</strong></p> }
       @if (editable()) { <div class="actions">
         <button #editButton class="button ghost" (click)="edit(editButton)">Uredi</button>
         <button #deleteButton class="button ghost" (click)="deleteError.set(''); deletion.set(deleteButton)">Izbriši</button>

@@ -12,8 +12,8 @@ describe('NotificationStore', () => {
   it('restarts the duration for replacement feedback and supports manual dismissal', () => {
     vi.useFakeTimers(); const store = TestBed.inject(NotificationStore);
     store.show('Seja je potekla.'); vi.advanceTimersByTime(6000);
-    store.show('Račun je ustvarjen. Za nadaljevanje se prijavi.', 'success');
-    vi.advanceTimersByTime(1000); expect(store.notification()?.kind).toBe('success');
+    store.show('Povezave s strežnikom ni bilo mogoče vzpostaviti.');
+    vi.advanceTimersByTime(1000); expect(store.notification()?.message).toBe('Povezave s strežnikom ni bilo mogoče vzpostaviti.');
     store.dismiss(); expect(store.notification()).toBeNull();
   });
 });

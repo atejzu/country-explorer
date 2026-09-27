@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { ProtectedActionIntent } from '../../../core/auth/protected-action-intent';
-import { NotificationStore } from '../../../core/notifications/notification-store';
 import { AuthRequiredPrompt } from '../../../shared/ui/auth-required-prompt/auth-required-prompt';
 import { CommunityApi } from '../community-api';
 import { communityError } from '../community-feedback';
@@ -22,7 +21,6 @@ export class DiscussionList {
   protected readonly intent = inject(ProtectedActionIntent);
   private readonly api = inject(CommunityApi);
   private readonly router = inject(Router);
-  private readonly notifications = inject(NotificationStore);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly result = signal<PageResponse<DiscussionSummary> | null>(null);
   protected readonly loading = signal(true);
@@ -60,7 +58,6 @@ export class DiscussionList {
   }
   protected created(discussion: Discussion): void {
     this.editor.set(null);
-    this.notifications.show('Razprava je ustvarjena.', 'success');
     void this.router.navigate(['/discussions', discussion.id]);
   }
 }

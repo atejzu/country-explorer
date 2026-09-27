@@ -92,7 +92,7 @@ export class DiscussionPage {
       updatedAt: content.updatedAt, locked: this.lockConfirmed() });
     this.editor.set(null);
     this.load(); // Cancels any read begun before this PATCH completion.
-    this.notifications.show('Razprava je posodobljena.', 'success'); this.focusHeading();
+    this.focusHeading();
   }
   protected unavailable(error: unknown): void {
     this.confirmation()?.dismiss();
@@ -114,7 +114,6 @@ export class DiscussionPage {
         this.confirmation()?.dismiss();
         this.pending.set(false); this.deletion.set(null);
         if (generation !== this.auth.sessionGeneration() || this.id() !== discussion.id) return;
-        this.notifications.show('Razprava je izbrisana.', 'success');
         void this.router.navigate(['/countries', discussion.countryCode]);
       },
       error: error => {

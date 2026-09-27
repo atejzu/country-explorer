@@ -45,6 +45,8 @@ describe('Application foundation', () => {
     TestBed.inject(HttpTestingController).expectOne(r => r.url === '/api/v1/countries').flush([]);
     const element: HTMLElement = fixture.nativeElement;
     expect(element.querySelector('nav a')?.getAttribute('aria-current')).toBe('page');
+    expect(element.querySelector('nav a')?.classList.contains('current')).toBe(true);
+    expect(element.querySelector('nav a[href="/favorites"]')?.hasAttribute('aria-current')).toBe(false);
   });
 
   it.each(['/countries/SVN', '/?region=Europe', '/countries/SVN#section', '/?region=Europe#section'])('skips to main without changing %s', async url => {
@@ -107,6 +109,22 @@ describe('Application foundation', () => {
     expect(element.querySelector('nav')?.textContent).toContain('Prijava');
     expect(element.querySelector('details')).toBeNull();
     expect(element.querySelector('a[href="/favorites"]')?.textContent).toBe('Priljubljene');
+    expect(element.querySelector('nav a[href="/login"]')).not.toBeNull();
+  });
+  it('keeps the signed-in exploration state and account trigger keyboard semantics', async () => {
+    await initializeTestSession(true);
+    const fixture = TestBed.createComponent(App);
+    await TestBed.inject(Router).navigateByUrl('/'); await fixture.whenStable();
+    TestBed.inject(HttpTestingController).expectOne(r => r.url === '/api/v1/countries').flush([]);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('nav a[href="/"]')?.getAttribute('aria-current')).toBe('page');
+    expect(element.querySelector('nav a[href="/"]')?.classList.contains('current')).toBe(true);
+    expect(element.querySelector('nav a[href="/login"]')).toBeNull();
+    const summary = element.querySelector<HTMLElement>('nav summary')!;
+    expect(summary.textContent).toBe(currentUser.username);
+    expect(summary.getAttribute('tabindex')).not.toBe('-1');
+    summary.click(); expect(element.querySelector<HTMLDetailsElement>('nav details')?.open).toBe(true);
   });
 
   it('renders a keyboard-accessible account disclosure and closes it on navigation', async () => {
@@ -135,7 +153,7 @@ describe('Application foundation', () => {
     await Promise.resolve(); http.expectOne('/api/v1/users/me').flush(currentUser); await ready;
   });
 
-  it.each(['Račun je ustvarjen. Za nadaljevanje se prijavi.', 'Seja je potekla.'])
+  it.each(['Povezave s strežnikom ni bilo mogoče vzpostaviti.', 'Seja je potekla.'])
     ('announces transient feedback without stealing focus: %s', async message => {
       const fixture = TestBed.createComponent(App); await fixture.whenStable();
       const element: HTMLElement = fixture.nativeElement;

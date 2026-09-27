@@ -53,7 +53,7 @@ describe('FavoritesStore', () => {
     load([]); store.add(summary); expect(store.isFavorite('SVN')).toBe(true); expect(store.isPending('svn')).toBe(true);
     expect(store.favorites()).toEqual([{ country: summary, favoritedAt: null }]);
     http.expectOne(URL + '/SVN').flush(null); expect(store.isFavorite('SVN')).toBe(true); expect(store.isPending('SVN')).toBe(false);
-    expect(notices.notification()?.message).toBe('Slovenija je dodana med priljubljene.');
+    expect(notices.notification()).toBeNull();
   });
   it('removes membership immediately, retains its grid position, then removes the row on success', () => {
     load([favorite, { country: italy, favoritedAt: favorite.favoritedAt }]); store.remove(summary);
@@ -61,7 +61,7 @@ describe('FavoritesStore', () => {
     expect(store.visibleFavorites().map(item => item.country.code)).toEqual(['SVN', 'ITA']);
     http.expectOne(URL + '/SVN').flush(null);
     expect(store.visibleFavorites().map(item => item.country.code)).toEqual(['ITA']);
-    expect(notices.notification()?.message).toBe('Slovenija je odstranjena iz priljubljenih.');
+    expect(notices.notification()).toBeNull();
   });
   it('rolls back a failed add exactly and shows approved transient failure copy', () => {
     load([]); store.add(summary); fail(http.expectOne(URL + '/SVN'));

@@ -51,9 +51,9 @@ describe('Comments and permanent discussion lock', () => {
     expect(list().textContent).toContain('Komentarjev še ni.'); expect(list().textContent).toContain('Bodi prvi, ki odgovori.'); http.expectNone(URL);
   });
   it('paginates oldest-first without reloading discussion metadata', async () => {
-    await loaded([comment], 21); expect(button(list(), 'Prejšnja').disabled).toBe(true); button(list(), 'Naslednja').click(); await render();
+    await loaded([comment], 21); expect(button(list(), 'Prejšnja stran').disabled).toBe(true); button(list(), 'Naslednja stran').click(); await render();
     http.expectOne(COMMENTS + '?page=1&size=20').flush(page([{ ...comment, id: 'last' }], 1, 20, 21)); await render();
-    expect(list().textContent).toContain('Stran 2 od 2'); expect(button(list(), 'Naslednja').disabled).toBe(true); http.expectNone(URL);
+    expect(list().textContent).toContain('Stran 2 od 2'); expect(button(list(), 'Naslednja stran').disabled).toBe(true); http.expectNone(URL);
   });
   it.each(['', '   ', 'a'.repeat(2001)])('rejects invalid comment content', async body => {
     await loaded([]); fill(root(), '#comment-body', body); send(create()); await render();
@@ -68,7 +68,7 @@ describe('Comments and permanent discussion lock', () => {
     expect(root().querySelector<HTMLTextAreaElement>('#comment-body')?.value).toBe('');
     http.expectOne(URL).flush({ ...discussion, locked: true, commentCount: 1 });
     http.expectOne(COMMENTS + '?page=0&size=20').flush(page([{ ...comment, body: 'Nov komentar' }])); await render();
-    expect(item().textContent).toContain('Nov komentar'); expect(TestBed.inject(NotificationStore).notification()?.message).toBe('Komentar je objavljen.');
+    expect(item().textContent).toContain('Nov komentar'); expect(TestBed.inject(NotificationStore).notification()).toBeNull();
   });
   it('transitions an unlocked discussion after its first server-confirmed comment', async () => {
     await loaded([]);
@@ -98,7 +98,7 @@ describe('Comments and permanent discussion lock', () => {
     expect(button(editor, 'Shranjevanje …').disabled).toBe(true);
     request.flush({ ...comment, body: 'Odziv strežnika', updatedAt: '2026-09-27T10:00:00Z' }); await render();
     expect(item().textContent).toContain('Odziv strežnika'); expect(item().textContent).toContain('Urejeno'); expect(item().querySelector('textarea')).toBeNull();
-    expect(TestBed.inject(NotificationStore).notification()?.message).toBe('Komentar je posodobljen.'); http.expectNone(URL);
+    expect(TestBed.inject(NotificationStore).notification()).toBeNull(); http.expectNone(URL);
   });
   it('validates edit and returns focus on cancellation', async () => {
     await loaded(); await edit(); fill(item(), 'textarea', '  '); send(item()); await render();
@@ -137,18 +137,18 @@ describe('Comments and permanent discussion lock', () => {
     http.expectOne(COMMENTS + '?page=0&size=20').flush(page([])); await render();
     expect(root().querySelector('article')?.querySelector('button')).toBeNull(); expect(root().textContent).toContain('Urejanje zaklenjeno');
     expect(list().querySelector('app-comment-item')).toBeNull(); expect(root().querySelector('#comment-body')).not.toBeNull();
-    expect(document.activeElement?.id).toBe('comments-heading'); expect(TestBed.inject(NotificationStore).notification()?.message).toBe('Komentar je izbrisan.');
+    expect(document.activeElement?.id).toBe('comments-heading'); expect(TestBed.inject(NotificationStore).notification()).toBeNull();
     expect(close).toHaveBeenCalledOnce(); expect(focus).toHaveBeenCalledOnce();
     expect(close.mock.invocationCallOrder[0]).toBeLessThan(focus.mock.invocationCallOrder[0]);
   });
   it('moves back from an empty last page after deletion', async () => {
-    await loaded([comment], 21); button(list(), 'Naslednja').click(); await render();
+    await loaded([comment], 21); button(list(), 'Naslednja stran').click(); await render();
     http.expectOne(COMMENTS + '?page=1&size=20').flush(page([comment], 1, 20, 21)); await render();
     await remove(); button(root(), 'Izbriši komentar').click(); http.expectOne(COMMENT).flush(null); await render();
     http.expectOne(URL).flush({ ...discussion, locked: true, commentCount: 20 });
     http.expectOne(COMMENTS + '?page=1&size=20').flush(page([], 1, 20, 20)); await render();
     http.expectOne(COMMENTS + '?page=0&size=20').flush(page([{ ...comment, id: 'earlier' }], 0, 20, 20)); await render();
-    expect(list().textContent).toContain('Stran 1 od 1'); expect(button(list(), 'Prejšnja').disabled).toBe(true);
+    expect(list().textContent).toContain('Stran 1 od 1'); expect(button(list(), 'Prejšnja stran').disabled).toBe(true);
   });
   it.each(['edit', 'delete'])('stops stale %s for COMMENT_NOT_FOUND', async action => {
     await loaded(); if (action === 'edit') { await edit(); send(item()); } else { await remove(); button(root(), 'Izbriši komentar').click(); }
@@ -181,7 +181,7 @@ describe('Comments and permanent discussion lock', () => {
   });
 
   it('retries the requested comment page after pagination fails', async () => {
-    await loaded([comment], 21); button(list(), 'Naslednja').click(); await render();
+    await loaded([comment], 21); button(list(), 'Naslednja stran').click(); await render();
     http.expectOne(COMMENTS + '?page=1&size=20').error(new ProgressEvent('error')); await render();
     button(list(), 'Poskusi znova').click();
     http.expectOne(COMMENTS + '?page=1&size=20').flush(page([comment], 1, 20, 21)); await render();
@@ -232,7 +232,7 @@ describe('Comments and permanent discussion lock', () => {
     if (outcome === 'success') {
       patch.flush({ ...comment, body: 'Potrjen popravek', updatedAt: '2026-09-27T12:00:00Z' }); await render();
       expect(item().textContent).toContain('Potrjen popravek'); expect(item().querySelector('textarea')).toBeNull();
-      expect(TestBed.inject(NotificationStore).notification()?.message).toBe('Komentar je posodobljen.');
+      expect(TestBed.inject(NotificationStore).notification()).toBeNull();
     } else {
       patch.error(new ProgressEvent('error')); await render();
       expect(item().querySelector('textarea')?.value).toBe('Čakajoči popravek'); expect(item().textContent).toContain(COMMENT_FAILURE);

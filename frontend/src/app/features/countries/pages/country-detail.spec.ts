@@ -104,7 +104,7 @@ describe('Country detail', () => {
     const retry = [...section.querySelectorAll('button')].find(b => b.textContent === 'Poskusi znova')!;
     retry.click(); await render();
     http.expectOne('/api/v1/countries/SVN/discussions?page=0&size=10').flush(page([discussion], 0, 10, 11)); await render();
-    [...section.querySelectorAll('button')].find(b => b.textContent === 'Naslednja')!.click(); await render();
+    [...section.querySelectorAll('button')].find(b => b.getAttribute('aria-label') === 'Naslednja stran')!.click(); await render();
     expect(element().querySelector('h1')?.textContent).toBe('Slovenija'); expect(element().querySelector('app-country-map')).not.toBeNull();
     http.expectNone('/api/v1/countries/SVN');
     http.expectOne('/api/v1/countries/SVN/discussions?page=1&size=10').flush(page([discussion], 1, 10, 11));

@@ -83,7 +83,6 @@ export class FavoritesStore {
       next: () => {
         if (!this.current(session, generation, epoch)) return;
         this.setChange(code, { ...change, pending: false });
-        this.notifications.show(`${country.name} je ${saved ? 'dodana med priljubljene' : 'odstranjena iz priljubljenih'}.`, 'success');
       },
       error: () => {
         if (!this.current(session, generation, epoch)) return;

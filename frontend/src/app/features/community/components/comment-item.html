@@ -2,7 +2,7 @@
   <span class="avatar" aria-hidden="true">{{ comment().author.username.slice(0, 2).toLocaleUpperCase('sl-SI') }}</span>
   <div>
     <div class="metadata"><strong>{{ comment().author.username }}</strong>
-      @if (owner()) { <span class="chip">Vi</span> }
+      @if (owner()) { <span class="owner-marker">Vi</span> }
       <app-community-time [createdAt]="comment().createdAt" [updatedAt]="comment().updatedAt" />
     </div>
     @if (editing()) {

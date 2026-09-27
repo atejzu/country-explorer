@@ -7,7 +7,6 @@ import { AuthApi } from '../../../core/auth/auth-api';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { safeReturnUrl } from '../../../core/auth/safe-return-url';
 import { apiProblem } from '../../../core/http/api-problem';
-import { NotificationStore } from '../../../core/notifications/notification-store';
 import { AuthRecovery } from '../auth-recovery';
 import { AuthFieldErrors } from '../auth-field-errors';
 
@@ -19,7 +18,6 @@ export class Register {
   protected readonly auth = inject(AuthStore);
   private readonly api = inject(AuthApi);
   private readonly router = inject(Router);
-  private readonly notifications = inject(NotificationStore);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   protected get returnUrl(): string { return safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')); }
@@ -55,7 +53,6 @@ export class Register {
           takeUntilDestroyed(this.destroyRef)));
         this.model.update(value => ({ ...value, password: '', confirmPassword: '' }));
         if (!this.destroyRef.destroyed) {
-          this.notifications.show('Račun je ustvarjen. Za nadaljevanje se prijavi.', 'success');
           await this.router.navigate(['/login'], { queryParams: { returnUrl: this.returnUrl } });
         }
       } catch (error: unknown) {

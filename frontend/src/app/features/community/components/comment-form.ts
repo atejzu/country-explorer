@@ -50,7 +50,6 @@ export class CommentForm {
           : this.api.createComment(this.discussionId(), body)).pipe(takeUntilDestroyed(this.destroyRef)));
         if (this.destroyRef.destroyed || generation !== this.auth.sessionGeneration()) return;
         if (!comment) { this.model.set({ body: '' }); fields().reset(); this.draftChanged.emit(''); }
-        this.notifications.show(comment ? 'Komentar je posodobljen.' : 'Komentar je objavljen.', 'success');
         this.saved.emit(result);
       } catch (error: unknown) {
         if (this.destroyRef.destroyed) return;

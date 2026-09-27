@@ -10,20 +10,20 @@ import { NotificationRegion } from '../../notifications/notification-region/noti
     <button class="skip button primary" type="button" (click)="skipToContent(main)">Preskoči na vsebino</button>
     <header><div class="container navigation">
       <a class="wordmark" routerLink="/">Country Explorer</a>
-      <nav aria-label="Glavna navigacija"><a routerLink="/" routerLinkActive="current"
+      <nav aria-label="Glavna navigacija"><a class="nav-link" routerLink="/" routerLinkActive="current"
         [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }" ariaCurrentWhenActive="page">Razišči</a>
-        <a routerLink="/favorites" routerLinkActive="current" ariaCurrentWhenActive="page">Priljubljene</a>
+        <a class="nav-link" routerLink="/favorites" routerLinkActive="current" ariaCurrentWhenActive="page">Priljubljene</a>
         @if (auth.isAuthenticated()) {
           <details #accountMenu (keydown.escape)="closeMenu(true)">
             <summary>{{ auth.user()?.username }}</summary>
             <div class="account-menu">
-              <a routerLink="/account" routerLinkActive="current" ariaCurrentWhenActive="page">Račun</a>
-              <a routerLink="/favorites" routerLinkActive="current" ariaCurrentWhenActive="page">Priljubljene</a>
+              <a class="nav-link" routerLink="/account" routerLinkActive="current" ariaCurrentWhenActive="page">Račun</a>
+              <a class="nav-link" routerLink="/favorites" routerLinkActive="current" ariaCurrentWhenActive="page">Priljubljene</a>
               <app-logout-button />
             </div>
           </details>
         } @else if (!auth.isChecking()) {
-          <a routerLink="/login" routerLinkActive="current" ariaCurrentWhenActive="page">Prijava</a>
+          <a class="nav-link" routerLink="/login" routerLinkActive="current" ariaCurrentWhenActive="page">Prijava</a>
         }
       </nav>
     </div></header>
@@ -39,15 +39,16 @@ import { NotificationRegion } from '../../notifications/notification-region/noti
     :host { display: flex; flex-direction: column; min-height: 100dvh; }
     header { border-bottom: 1px solid var(--color-fog); }
     .navigation { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 16px; }
-    a { display: inline-flex; min-height: 44px; align-items: center; text-decoration: none; }
+    a { display: inline-flex; min-height: 44px; align-items: center; }
     .wordmark { font: 400 24px var(--font-display); color: var(--color-carbon); }
-    nav a { padding: 12px; border-radius: 12px; color: var(--color-graphite); }
-    nav a:hover { background: var(--color-mist); }
-    nav a.current { color: var(--color-carbon); box-shadow: inset 0 -2px var(--color-primary); }
+    .wordmark, nav a { text-decoration: none; }
+    nav a { padding: 10px 12px; border-bottom: 1px solid transparent; color: var(--color-graphite); }
+    nav a:hover:not(.current) { color: var(--color-carbon); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+    nav a.current { color: var(--color-primary); border-bottom-color: var(--color-primary); }
     nav { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; margin-inline-start: auto; }
     details { position: relative; min-width: 0; max-width: 100%; }
-    summary { min-height: 44px; padding: 12px; border-radius: var(--radius-control); cursor: pointer; overflow-wrap: anywhere; }
-    summary:hover { background: var(--color-mist); }
+    summary { min-height: 44px; padding: 10px 12px; color: var(--color-graphite); cursor: pointer; overflow-wrap: anywhere; }
+    summary:hover { color: var(--color-carbon); }
     .account-menu { position: absolute; right: 0; top: calc(100% + 8px); width: 180px; max-width: calc(100vw - 32px); padding: 8px; border: 1px solid var(--color-fog); border-radius: var(--radius-control); background: var(--color-paper-white); box-shadow: var(--shadow-subtle-3); z-index: 1100; }
     .account-menu a { display: flex; }
     .logout-error { padding-top: 16px; }

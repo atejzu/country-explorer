@@ -2,7 +2,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { appConfig } from '../../../app.config';
-import { initializeTestSession, problem } from '../../../core/auth/auth.fixture';
+import { AuthStore } from '../../../core/auth/auth-store';
+import { currentUser, initializeTestSession, problem } from '../../../core/auth/auth.fixture';
 import { NotificationStore } from '../../../core/notifications/notification-store';
 import { button, discussion, fill, mockDialogs, page, restoreDialogs, send } from '../community.fixture';
 import { DiscussionList } from './discussion-list';
@@ -27,14 +28,28 @@ describe('Country discussion section and creation', () => {
     expect(button(root(), 'Začni razpravo').disabled).toBe(false); await loaded();
     expect(root().textContent).toContain('Ta država še nima razprav.'); expect(root().textContent).toContain('Začni prvi pogovor.');
   });
-  it('renders cards, locked state, routes and independent pagination', async () => {
+  it('renders cards without guest lock status and paginates with labeled controls', async () => {
     http.expectOne(URL + '?page=0&size=10').flush(page([{ ...discussion, locked: true }], 0, 10, 11)); await render();
     expect(root().querySelector('a')?.getAttribute('href')).toBe('/discussions/discussion-1');
-    expect(root().textContent).toContain('Urejanje zaklenjeno'); expect(root().textContent).toContain(discussion.author.username);
-    expect(button(root(), 'Prejšnja').disabled).toBe(true); button(root(), 'Naslednja').click(); await render();
+    expect(root().textContent).not.toContain('Urejanje zaklenjeno'); expect(root().textContent).toContain(discussion.author.username);
+    expect(root().querySelectorAll('app-community-pagination button')).toHaveLength(2);
+    expect(button(root(), 'Prejšnja stran').disabled).toBe(true); button(root(), 'Naslednja stran').click(); await render();
     http.expectOne(URL + '?page=1&size=10').flush(page([discussion], 1, 10, 11)); await render();
-    expect(root().textContent).toContain('Stran 2 od 2'); expect(button(root(), 'Naslednja').disabled).toBe(true);
+    expect(root().textContent).toContain('Stran 2 od 2'); expect(button(root(), 'Naslednja stran').disabled).toBe(true);
     http.expectNone('/api/v1/countries/SVN');
+  });
+  it('shows card lock status only to its owner', async () => {
+    http.expectOne(URL + '?page=0&size=10').flush(page([{ ...discussion, locked: true }])); await render();
+    expect(root().textContent).not.toContain('Urejanje zaklenjeno');
+    await initializeTestSession(true); await render();
+    expect(root().textContent).toContain('Urejanje zaklenjeno');
+    const auth = TestBed.inject(AuthStore);
+    auth.expireSession(); await render();
+    expect(root().textContent).not.toContain('Urejanje zaklenjeno');
+    const pending = auth.initialize(); http.expectOne('/api/v1/auth/csrf').flush(null); await Promise.resolve();
+    http.expectOne('/api/v1/users/me').flush({ ...currentUser, id: 'other', username: 'Other user' });
+    await pending; await render();
+    expect(root().textContent).not.toContain('Urejanje zaklenjeno');
   });
   it('retries only the failed section', async () => {
     http.expectOne(URL + '?page=0&size=10').flush(problem('INTERNAL_ERROR', 500), { status: 500, statusText: 'Error' }); await render();
@@ -70,7 +85,7 @@ describe('Country discussion section and creation', () => {
     expect(navigate).not.toHaveBeenCalled(); expect(button(root(), 'Ustvarjanje razprave …').disabled).toBe(true);
     request.flush(discussion, { status: 201, statusText: 'Created' }); await render();
     expect(navigate).toHaveBeenCalledWith(['/discussions', discussion.id]); expect(root().querySelector('dialog')).toBeNull();
-    expect(TestBed.inject(NotificationStore).notification()?.message).toBe('Razprava je ustvarjena.');
+    expect(TestBed.inject(NotificationStore).notification()).toBeNull();
   });
   it.each(['VALIDATION_FAILED', 'ACCESS_DENIED', 'COUNTRY_NOT_FOUND', 'COUNTRY_SERVICE_UNAVAILABLE', 'INTERNAL_ERROR'])('preserves drafts and handles %s safely', async code => {
     await openEditor(); fill(root(), '#discussion-title', 'Nov naslov'); fill(root(), '#discussion-body', 'Moja vsebina'); send(root());
@@ -81,7 +96,7 @@ describe('Country discussion section and creation', () => {
   });
   it('retries the requested discussion page after pagination fails', async () => {
     http.expectOne(URL + '?page=0&size=10').flush(page([discussion], 0, 10, 11)); await render();
-    button(root(), 'Naslednja').click(); await render();
+    button(root(), 'Naslednja stran').click(); await render();
     http.expectOne(URL + '?page=1&size=10').error(new ProgressEvent('error')); await render();
     button(root(), 'Poskusi znova').click();
     http.expectOne(URL + '?page=1&size=10').flush(page([discussion], 1, 10, 11)); await render();
@@ -90,12 +105,12 @@ describe('Country discussion section and creation', () => {
 
   it('refetches the last valid discussion page exactly once after concurrent deletion', async () => {
     http.expectOne(URL + '?page=0&size=10').flush(page([discussion], 0, 10, 11)); await render();
-    button(root(), 'Naslednja').click(); await render();
+    button(root(), 'Naslednja stran').click(); await render();
     http.expectOne(URL + '?page=1&size=10').flush(page([], 1, 10, 10)); await render();
     expect(root().textContent).not.toContain('Ta država še nima razprav.');
     http.expectOne(URL + '?page=0&size=10').flush(page([discussion], 0, 10, 10)); await render();
     expect(root().textContent).toContain(discussion.title); expect(root().textContent).toContain('Stran 1 od 1');
-    expect(button(root(), 'Prejšnja').disabled).toBe(true); expect(button(root(), 'Naslednja').disabled).toBe(true);
+    expect(button(root(), 'Prejšnja stran').disabled).toBe(true); expect(button(root(), 'Naslednja stran').disabled).toBe(true);
     http.expectNone(r => r.url === URL);
   });
 

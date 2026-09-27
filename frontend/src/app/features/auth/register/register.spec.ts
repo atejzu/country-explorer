@@ -49,7 +49,7 @@ describe('Registration Signal Form', () => {
     expect(request.request.body).not.toHaveProperty('confirmPassword');
     request.flush(currentUser, { status: 201, statusText: 'Created' }); await render();
     expect(TestBed.inject(AuthStore).status()).toBe('anonymous');
-    expect(TestBed.inject(NotificationStore).notification()?.message).toBe('Račun je ustvarjen. Za nadaljevanje se prijavi.');
+    expect(TestBed.inject(NotificationStore).notification()).toBeNull();
     expect(TestBed.inject(Router).url).toBe('/login?returnUrl=%2Faccount');
     http.expectNone('/api/v1/auth/login');
     for (const [id, value] of [['email', currentUser.email], ['password', 'test-only']]) {

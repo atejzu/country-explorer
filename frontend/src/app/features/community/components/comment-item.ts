@@ -11,10 +11,11 @@ import { CommentForm } from './comment-form';
 import { DeleteConfirmation } from './delete-confirmation';
 @Component({ selector: 'app-comment-item', imports: [CommunityTime, CommentForm, DeleteConfirmation], templateUrl: './comment-item.html',
   styleUrl: '../community.scss', styles: `
-    article { display:grid; grid-template-columns:40px minmax(0,1fr); gap:var(--spacing-16); }
-    .avatar { display:grid; place-items:center; width:40px; height:40px; border-radius:50%; background:var(--color-mist); }
-    .prose { margin-top:var(--spacing-16); } .metadata { margin-top:0; }
-    @media(max-width:560px) { article { grid-template-columns:minmax(0,1fr); } }
+    article { display:grid; grid-template-columns:32px minmax(0,1fr); align-items:start; gap:var(--spacing-12); }
+    .avatar { display:grid; place-items:center; width:32px; height:32px; border-radius:50%; background:var(--color-mist); color:var(--color-graphite); font-size:11px; font-weight:600; }
+    .prose { margin-top:var(--spacing-16); } .metadata { min-height:32px; margin-top:0; column-gap:var(--spacing-8); row-gap:var(--spacing-4); }
+    .metadata > strong { color:var(--color-primary); }
+    .owner-marker { color:var(--color-carbon); font-weight:600; }
   ` })
 export class CommentItem {
   readonly comment = input.required<Comment>();
@@ -54,7 +55,7 @@ export class CommentItem {
         this.confirmation()?.dismiss();
         this.pending.set(false);
         if (generation !== this.auth.sessionGeneration()) { this.deletion.set(null); return; }
-        this.deletion.set(null); this.notifications.show('Komentar je izbrisan.', 'success'); this.deleted.emit();
+        this.deletion.set(null); this.deleted.emit();
       },
       error: error => {
         this.pending.set(false);

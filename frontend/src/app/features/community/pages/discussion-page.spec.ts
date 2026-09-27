@@ -74,8 +74,26 @@ describe('Public discussion detail and owner mutations', () => {
     expect(article().textContent).toContain('Urejanje zaklenjeno'); expect(article().textContent).toContain('Komentarji ostajajo odprti.');
     expect(root().querySelector('#comment-body')).not.toBeNull();
   });
+  it('hides lock status from guests while preserving the locked server state and open comments', async () => {
+    await loaded(true);
+    expect(article().textContent).not.toContain('Urejanje zaklenjeno');
+    expect(article().textContent).not.toContain(LOCK_MESSAGE);
+    expect(article().querySelector('button')).toBeNull();
+    expect(root().querySelector('app-comment-list')).not.toBeNull();
+  });
+  it('hides lock status from authenticated non-owners while leaving commenting available', async () => {
+    await initializeTestSession(true);
+    http.expectOne(URL).flush({ ...discussion, locked: true, author: { id: 'other', username: 'Other user' } });
+    http.expectOne(COMMENTS).flush(page([])); await render();
+    expect(article().textContent).not.toContain('Urejanje zaklenjeno');
+    expect(article().textContent).not.toContain(LOCK_MESSAGE);
+    expect(article().querySelector('button')).toBeNull();
+    expect(root().querySelector('#comment-body')).not.toBeNull();
+  });
   it('does not infer lock from a nonzero count', async () => {
     await initializeTestSession(true); await loaded(false, 7); expect(button(article(), 'Uredi')).toBeTruthy();
+    expect(article().textContent).not.toContain('Urejanje zaklenjeno');
+    expect(article().textContent).not.toContain(LOCK_MESSAGE);
   });
   it('prefills edit, prevents duplicate PATCH and uses the server response', async () => {
     await owner(); await editor();
@@ -88,7 +106,7 @@ describe('Public discussion detail and owner mutations', () => {
     expect(root().querySelector('h1')?.textContent).toBe(discussion.title); expect(button(dialog, 'Shranjevanje …').disabled).toBe(true);
     request.flush({ ...discussion, title: 'Strežniški naslov', body: 'Strežniška vsebina', updatedAt: '2026-09-27T12:00:00Z' }); await render();
     expect(root().querySelector('dialog')).toBeNull(); expect(root().querySelector('h1')?.textContent).toBe('Strežniški naslov');
-    expect(article().textContent).toContain('Urejeno'); expect(TestBed.inject(NotificationStore).notification()?.message).toBe('Razprava je posodobljena.');
+    expect(article().textContent).toContain('Urejeno'); expect(TestBed.inject(NotificationStore).notification()).toBeNull();
     http.expectOne(URL).flush({ ...discussion, title: 'Strežniški naslov', body: 'Strežniška vsebina', updatedAt: '2026-09-27T12:00:00Z' }); await render();
   });
   it('validates discussion edit without sending PATCH', async () => {
@@ -126,7 +144,7 @@ describe('Public discussion detail and owner mutations', () => {
     const request = http.expectOne(URL); expect(request.request.method).toBe('DELETE'); expect(navigate).not.toHaveBeenCalled();
     expect(article().textContent).toContain(discussion.title);
     request.flush(null, { status: 204, statusText: 'No Content' }); await render();
-    expect(navigate).toHaveBeenCalledWith(['/countries', 'SVN']); expect(TestBed.inject(NotificationStore).notification()?.message).toBe('Razprava je izbrisana.');
+    expect(navigate).toHaveBeenCalledWith(['/countries', 'SVN']); expect(TestBed.inject(NotificationStore).notification()).toBeNull();
   });
   it.each([['DISCUSSION_LOCKED', 409], ['DISCUSSION_NOT_OWNED', 403], ['DISCUSSION_NOT_FOUND', 404]] as const)('handles DELETE %s explicitly', async (code, status) => {
     await owner(); await deletion(); button(root(), 'Izbriši razpravo').click();

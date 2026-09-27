@@ -41,7 +41,9 @@ h2 { font-size: 24px; line-height: 1.17; letter-spacing: -.29px; margin: 0; }
 p { margin: 0; }
 h1, h2, p, dd, a { overflow-wrap: anywhere; }
 dd { font-variant-numeric: tabular-nums; }
-a { color: var(--color-primary); text-underline-offset: 4px; }
+a { color: var(--color-primary); }
+a:not(.button):not(.wordmark):not(.nav-link):not([role="button"]) { text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 4px; }
+a:not(.button):not(.wordmark):not(.nav-link):not([role="button"]):hover { color: color-mix(in srgb, var(--color-primary) 85%, var(--color-carbon)); }
 button, input, select, textarea { font: inherit; color: inherit; }
 button, select { cursor: pointer; }
 :focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
@@ -55,7 +57,7 @@ label { display: block; font-size: 14px; font-weight: 600; margin-bottom: var(--
 input, select, textarea { width: 100%; min-width: 0; min-height: 48px; padding: var(--spacing-8) var(--spacing-12); border: 2px solid var(--color-control-border); border-radius: var(--radius-control); background: var(--color-paper-white); }
 input::placeholder, textarea::placeholder { color: var(--color-graphite); }
 input:hover, select:hover, textarea:hover { border-color: var(--color-control-border-hover); }
-input:focus, select:focus, textarea:focus { border-color: var(--color-primary); }
+input:focus, select:focus, textarea:focus { border-color: var(--color-primary); outline: none; box-shadow: none; }
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 20px; border: 1px solid transparent; border-radius: var(--radius-control); text-decoration: none; }
 .primary { background: var(--color-primary); color: white; }
 .primary:hover { background: #4338CA; }
@@ -68,11 +70,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--color-primary); 
 .auth-secondary a { display: inline-block; padding-block: var(--spacing-12); }
 .auth-feedback { display: grid; gap: var(--spacing-16); }
 .field-error { margin-top: var(--spacing-4); font-size: 14px; }
-input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--color-ember); }
-input:focus-visible, textarea:focus-visible { box-shadow: 0 0 0 3px #4f46e51a; }
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"],
+input[aria-invalid="true"]:focus, select[aria-invalid="true"]:focus, textarea[aria-invalid="true"]:focus { border-color: var(--color-ember); }
+input[aria-invalid="true"]:focus-visible, select[aria-invalid="true"]:focus-visible, textarea[aria-invalid="true"]:focus-visible { outline: 1px solid var(--color-primary); outline-offset: 2px; }
 .ghost { background: transparent; color: var(--color-graphite); }
 .ghost:hover { background: var(--color-mist); color: var(--color-carbon); }
 .chip { border: 1px solid var(--color-fog); border-radius: var(--radius-sm); background: var(--color-mist); padding: var(--spacing-4) var(--spacing-8); font-size: 12px; }
+.chip-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-8); }
 .flag { object-fit: cover; width: 48px; height: 32px; border: 1px solid var(--color-fog); border-radius: 4px; }
 .skeleton { height: 16px; border-radius: var(--radius-sm); background: var(--color-mist); }
 .empty { min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: var(--spacing-16); }
@@ -85,7 +89,7 @@ input:focus-visible, textarea:focus-visible { box-shadow: 0 0 0 3px #4f46e51a; }
 .leaflet-control-attribution { max-width: 100%; overflow-wrap: anywhere; }
 @media (max-width: 560px) { .container { width: calc(100% - var(--spacing-32)); } h1 { font-size: 32px; } .panel { padding: var(--spacing-24); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
-@media (forced-colors: active) { .button { border-color: ButtonText; } .primary { background: Highlight; color: HighlightText; } :focus-visible { outline-color: Highlight; } }
+@media (forced-colors: active) { .button { border-color: ButtonText; } .primary { background: Highlight; color: HighlightText; } :focus-visible, input[aria-invalid="true"]:focus-visible, select[aria-invalid="true"]:focus-visible, textarea[aria-invalid="true"]:focus-visible { outline-color: Highlight; } input:focus, select:focus, textarea:focus { border-color: Highlight; } }
 
 textarea { display: block; min-height: 128px; resize: vertical; }
 .danger { color: var(--color-carbon); border-color: var(--color-ember); background: var(--color-paper-white); }

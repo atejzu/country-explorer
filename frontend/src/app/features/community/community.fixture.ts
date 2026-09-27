@@ -42,7 +42,7 @@ export function fill(root: HTMLElement, selector: string, value: string): void {
   field.value = value; field.dispatchEvent(new Event('input')); field.dispatchEvent(new Event('blur'));
 }
 export function button(root: HTMLElement, name: string): HTMLButtonElement {
-  const result = [...root.querySelectorAll('button')].find(button => button.textContent?.trim() === name);
+  const result = [...root.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') ?? button.textContent?.trim()) === name);
   if (!result) throw new Error(`Missing button ${name}`);
   return result;
 }
