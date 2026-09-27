@@ -3,7 +3,8 @@
 Petrol programming assignment. Phase 2B implements the Slovenian country explorer:
 search, region filtering, name/population sorting, country details and a Leaflet /
 OpenStreetMap map. Explorer state is shareable through URL query parameters.
-Accounts, favourites and community features are not implemented yet.
+Phase 3A adds backend accounts and session authentication. Angular authentication
+UI, favourites and community features are not implemented yet.
 
 **Stack:** Java 21, Spring Boot 4.1.1, Maven Wrapper, PostgreSQL 17, Flyway,
 Angular 22, Node.js 24.15.0, npm, Vitest and Docker Compose. Nginx serves the
@@ -29,8 +30,9 @@ docker compose up --build
 ```
 
 Open **http://localhost:8080**. Health: http://localhost:8081/actuator/health.
-Country GET endpoints and health are public; other backend requests remain
-denied. Actuator is not proxied through the frontend. PostgreSQL has no published
+Country GET endpoints, health and auth bootstrap/registration/login are public.
+Current-user and logout require authentication; future backend routes remain denied.
+Actuator is not proxied through the frontend. PostgreSQL has no published
 host port, and application/diagnostic ports bind to localhost.
 
 `REST_COUNTRIES_API_KEY` is required for country requests and is sent only by
@@ -39,10 +41,12 @@ and health checks; country requests return `503 COUNTRY_SERVICE_UNAVAILABLE`.
 No credentials are passed into frontend builds. Keep `.env` private and untracked.
 `FRONTEND_ORIGIN` remains reserved for later integration.
 
-Flyway runs on startup with no application migrations yet. It creates only its
-schema history table. The domain phase will introduce V1; Hibernate uses `validate`.
-Security dependencies are present, CSRF remains enabled, and no login or generated
-default account is provided. Session cookie settings are prepared for later use.
+Flyway runs `V1__create_users.sql` on startup: the `users` table has UUID IDs,
+UTC timestamps and case-insensitive unique username/email indexes. Hibernate uses
+`validate`. Passwords use Spring Security's versioned delegating encoder with
+`pbkdf2@SpringSecurity_v5_8` for new accounts. Passwords require 8–72 characters
+without composition rules or an additional UTF-8 byte limit. No default account
+is provided.
 
 ```sh
 docker compose ps
@@ -71,7 +75,7 @@ Official names use Slovenian native names when available, otherwise canonical na
 Search matches both application display names and canonical names.
 Country data stays in memory: the complete projected catalogue and individual
 country details have separate Caffeine caches with a default 24-hour TTL.
-No country records or application entities are stored in PostgreSQL in this phase.
+Country records are not stored in PostgreSQL; user accounts are persisted there.
 Errors use Problem Details with stable `code` values.
 
 Backend configuration supports `REST_COUNTRIES_BASE_URL`,
@@ -79,6 +83,30 @@ Backend configuration supports `REST_COUNTRIES_BASE_URL`,
 (default `5s`), `COUNTRY_CATALOG_TTL` / `COUNTRY_DETAILS_TTL` (default `24h`),
 and `COUNTRY_DETAILS_MAXIMUM_SIZE` (default `300`). For Compose, optional overrides
 beyond base URL/key must be passed into the backend service environment.
+
+## Backend authentication
+
+- `GET /api/v1/auth/csrf`: anonymous `204`, materializes the `XSRF-TOKEN` cookie.
+- `POST /api/v1/auth/register`: username, email and password; `201` current-user
+  DTO. Registration does not log in. Case-insensitive conflicts return stable `409`s,
+  including concurrent inserts. Validation returns `400 VALIDATION_FAILED` with field errors.
+- `POST /api/v1/auth/login`: JSON email/password; `200` with `{ "user": ... }`.
+  Invalid credentials return the same `401 INVALID_CREDENTIALS` for unknown email
+  and wrong password. Login runs inside the Spring Security filter chain.
+- `GET /api/v1/users/me`: own account DTO, or `401 AUTHENTICATION_REQUIRED`.
+- `POST /api/v1/auth/logout`: authenticated, session invalidation, `204`.
+
+Authentication uses a server-side Spring Security HTTP session, with session ID
+rotation at login and a 30-minute idle timeout. No JWT or browser storage token is
+used. The session cookie is HttpOnly / SameSite=Lax; set `SESSION_COOKIE_SECURE=true`
+for deployed HTTPS. Sessions are local to the single backend and do not survive restart.
+
+All auth POSTs remain CSRF-protected. Bootstrap `/auth/csrf` before a mutation,
+send the plain `XSRF-TOKEN` cookie value as `X-XSRF-TOKEN`, and bootstrap again after
+login/logout. Only the XSRF cookie is JavaScript-readable. Spring Security's SPA
+handling retains BREACH protection. Security errors use `application/problem+json`;
+CSRF and authorization failures return `403 ACCESS_DENIED`. The same-origin proxy
+requires no CORS configuration. Angular will wire this lifecycle in Phase 3B.
 
 ## Development and tests
 
@@ -124,6 +152,8 @@ cd backend
 This development database uses the same named volume as Compose. Stop it with
 `docker stop country-explorer-postgres-dev` before returning to the full stack.
 Backend tests use independent disposable containers and do not use this volume.
+Auth tests cover real cookie/header CSRF, HTTP sessions, PostgreSQL uniqueness
+races, and migration over both fresh schemas and empty Flyway history.
 Country integration tests use a local mock HTTP server; no API key, internet
 connection or real REST Countries quota is required by the test suite once build
 dependencies and the PostgreSQL image are available locally.

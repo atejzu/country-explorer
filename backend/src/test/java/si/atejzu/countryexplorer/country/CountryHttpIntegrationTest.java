@@ -59,6 +59,9 @@ class CountryHttpIntegrationTest {
     private static final java.util.concurrent.ExecutorService executor = Executors.newCachedThreadPool();
     private static final HttpServer server = startServer();
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    si.atejzu.countryexplorer.common.security.AppUserDetailsService users;
+
     @Autowired MockMvc mvc;
     @Autowired CacheManager caches;
     @Autowired RestCountriesClient client;
@@ -322,11 +325,11 @@ class CountryHttpIntegrationTest {
 
     @Test
     void securityFoundationStillDeniesOtherRoutesAndUnsafeMethods() throws Exception {
-        for (String path : List.of("/api/v1/auth/csrf", "/login", "/api/v1/countries/SVN/discussions")) {
-            mvc.perform(get(path)).andExpect(status().isForbidden());
+        for (String path : List.of("/login", "/api/v1/countries/SVN/discussions")) {
+            mvc.perform(get(path)).andExpect(status().isUnauthorized());
         }
         mvc.perform(post("/api/v1/countries")).andExpect(status().isForbidden());
-        mvc.perform(post("/api/v1/countries").with(csrf())).andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/countries").with(csrf())).andExpect(status().isUnauthorized());
     }
 
     private void unavailable(String path) throws Exception {

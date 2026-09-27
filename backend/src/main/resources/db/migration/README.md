@@ -1,5 +1,4 @@
-Flyway owns schema changes and runs at application startup.
+Flyway owns schema changes and runs at application startup; Hibernate validates the result.
 
-Phase 1 intentionally has no SQL migrations or application tables. Flyway may
-create its own schema history table. `V1__initial_schema.sql` is reserved for the
-persistence/domain phase; do not add an empty V1 or baseline migration here.
+V1 creates only the users table and its case-insensitive username/email unique indexes.
+Applied migrations are immutable. Future domain tables require separate migrations.

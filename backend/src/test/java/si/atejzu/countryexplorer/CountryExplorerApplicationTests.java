@@ -44,18 +44,19 @@ class CountryExplorerApplicationTests {
     }
 
     @Test
-    void flywayRunsAgainstPostgresWithoutAnApplicationSchema() {
-        assertThat(flyway.info().applied()).isEmpty();
+    void flywayCreatesUsersAndHibernateValidatesTheSchema() {
+        assertThat(flyway.info().applied()).hasSize(1);
+        assertThat(flyway.info().applied()[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(flyway.info().pending()).isEmpty();
         List<String> tables = jdbc.queryForList(
                 "select tablename from pg_tables where schemaname = 'public'", String.class);
-        assertThat(tables).containsExactly("flyway_schema_history");
+        assertThat(tables).containsExactlyInAnyOrder("flyway_schema_history", "users");
     }
 
     @Test
     void otherEndpointsAreNotPublic() throws Exception {
-        for (String path : List.of("/actuator", "/actuator/env", "/api/v1/auth/csrf", "/login")) {
-            mvc.perform(get(path)).andExpect(status().isForbidden());
+        for (String path : List.of("/actuator", "/actuator/env", "/login")) {
+            mvc.perform(get(path)).andExpect(status().isUnauthorized());
         }
     }
 

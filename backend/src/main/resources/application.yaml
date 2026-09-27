@@ -51,3 +51,8 @@ app:
     catalogue-ttl: ${COUNTRY_CATALOG_TTL:24h}
     details-ttl: ${COUNTRY_DETAILS_TTL:24h}
     details-maximum-size: ${COUNTRY_DETAILS_MAXIMUM_SIZE:300}
+
+# PostgreSQL error detail can include row values. Keep failures sanitized by the API handler.
+logging:
+  level:
+    org.hibernate.orm.jdbc.error: "OFF"
