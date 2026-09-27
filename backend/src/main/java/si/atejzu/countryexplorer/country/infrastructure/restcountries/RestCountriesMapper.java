@@ -2,11 +2,13 @@ package si.atejzu.countryexplorer.country.infrastructure.restcountries;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.IllformedLocaleException;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,9 @@ import si.atejzu.countryexplorer.country.infrastructure.restcountries.RestCountr
 public class RestCountriesMapper {
     private static final Logger log = LoggerFactory.getLogger(RestCountriesMapper.class);
 
+    private static final Locale DISPLAY_LOCALE = Locale.forLanguageTag("sl-SI");
+    private static final Set<String> ISO_COUNTRIES = Set.of(Locale.getISOCountries());
+
     public Optional<CountrySummary> summary(Country source) {
         if (source == null || source.codes() == null || source.codes().alpha3() == null
                 || !source.codes().alpha3().matches("[A-Z]{3}")) {
@@ -26,15 +31,15 @@ public class RestCountriesMapper {
             return Optional.empty();
         }
         var names = source.names();
-        var translation = names == null || names.translations() == null ? null : names.translations().get("slv");
+        var nativeName = names == null || names.nativeNames() == null ? null : names.nativeNames().get("slv");
         String canonical = names == null ? null : names.common();
         String official = names == null ? null : names.official();
-        String display = fallback(translation == null ? null : translation.common(), canonical);
+        String display = fallback(nativeName == null ? null : nativeName.common(), localizedCommonName(source.codes().alpha2(), canonical));
         if (display == null || display.isBlank()) {
             log.warn("Country response has no usable display name");
             throw new CountryServiceUnavailableException();
         }
-        String displayOfficial = fallback(translation == null ? null : translation.official(), official);
+        String displayOfficial = fallback(nativeName == null ? null : nativeName.official(), official);
         var capitals = values(source.capitals()).stream().filter(c -> c.name() != null && !c.name().isBlank()).toList();
         String capital = capitals.stream().filter(c -> c.attributes() != null && Boolean.TRUE.equals(c.attributes().primary()))
                 .findFirst().or(() -> capitals.stream().findFirst()).map(RestCountriesResponse.Capital::name).orElse(null);
@@ -68,6 +73,18 @@ public class RestCountriesMapper {
             return Locale.forLanguageTag(tag).getISO3Language();
         } catch (MissingResourceException e) {
             return tag;
+        }
+    }
+
+    private String localizedCommonName(String alpha2, String canonical) {
+        if (alpha2 == null || !alpha2.matches("[A-Z]{2}") || !ISO_COUNTRIES.contains(alpha2)) {
+            return canonical;
+        }
+        try {
+            String localized = new Locale.Builder().setRegion(alpha2).build().getDisplayCountry(DISPLAY_LOCALE);
+            return localized.isBlank() || localized.equalsIgnoreCase(alpha2) ? canonical : localized;
+        } catch (IllformedLocaleException | MissingResourceException e) {
+            return canonical;
         }
     }
 

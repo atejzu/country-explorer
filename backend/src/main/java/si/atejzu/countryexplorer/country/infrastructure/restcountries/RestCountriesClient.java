@@ -24,7 +24,7 @@ import si.atejzu.countryexplorer.country.domain.CountrySummary;
 @EnableConfigurationProperties(RestCountriesProperties.class)
 public class RestCountriesClient {
     private static final Logger log = LoggerFactory.getLogger(RestCountriesClient.class);
-    static final String CATALOG_FIELDS = "codes.alpha_3,names.common,names.official,names.translations.slv,capitals,population,region,flag.url_png,flag.url_svg";
+    static final String CATALOG_FIELDS = "codes.alpha_2,codes.alpha_3,names.common,names.official,names.native.slv,capitals,population,region,flag.url_png,flag.url_svg";
     private static final int PAGE_SIZE = 100;
     private final RestClient http;
     private final RestCountriesProperties properties;

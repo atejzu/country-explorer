@@ -2,6 +2,8 @@ package si.atejzu.countryexplorer.country;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.databind.json.JsonMapper;
 import si.atejzu.countryexplorer.country.infrastructure.restcountries.RestCountriesMapper;
@@ -46,7 +48,7 @@ class RestCountriesMapperTest {
     }
 
     @Test
-    void absentOptionalFieldsAndTranslationsAreSafe() {
+    void absentOptionalFieldsAndNativeNamesAreSafe() {
         var country = json.readValue("""
                 {"codes":{"alpha_3":"ATA"},"names":{"common":"Antarctica","official":"Antarctica"}}
                 """, Country.class);
@@ -62,6 +64,37 @@ class RestCountriesMapperTest {
         assertThat(detail.coordinates()).isNull();
         assertThat(detail.populationDensity()).isNull();
         assertThat(detail.flag().png()).isNull();
+    }
+
+    @ParameterizedTest
+    @CsvSource({"SI,Slovenija", "DE,Nemčija", "IT,Italija"})
+    void localizesCommonNamesUsingJavaLocale(String alpha2, String expected) {
+        var source = CountryFixtures.GERMANY.replace("\"DE\"", "\"" + alpha2 + "\"");
+        var summary = mapper.summary(json.readValue(source, Country.class)).orElseThrow();
+        assertThat(summary.name()).isEqualTo(expected);
+        assertThat(summary.officialName()).isEqualTo("Federal Republic of Germany");
+        assertThat(summary.canonicalName()).isEqualTo("Germany");
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"", " ", "D", "DEU", "12", "de", "D!", "ZZ"})
+    void invalidOrUnsupportedAlpha2KeepsCanonicalCountry(String alpha2) {
+        String codes = alpha2 == null ? "" : "\"alpha_2\":\"" + alpha2 + "\",";
+        var country = json.readValue("{\"codes\":{" + codes + "\"alpha_3\":\"DEU\"},"
+                + "\"names\":{\"common\":\"Germany\"}}", Country.class);
+        var detail = mapper.detail(country);
+        assertThat(detail.code()).isEqualTo("DEU");
+        assertThat(detail.name()).isEqualTo("Germany");
+        assertThat(detail.officialName()).isNull();
+    }
+
+    @Test
+    void nativeCommonNameTakesPriorityAndBlankNativeNameUsesLocale() {
+        var source = CountryFixtures.SLOVENIA.replace("\"SI\"", "\"DE\"");
+        assertThat(mapper.detail(json.readValue(source, Country.class)).name()).isEqualTo("Slovenija");
+        source = source.replace("\"common\":\"Slovenija\"", "\"common\":\" \"");
+        assertThat(mapper.detail(json.readValue(source, Country.class)).name()).isEqualTo("Nemčija");
     }
 
     @ParameterizedTest

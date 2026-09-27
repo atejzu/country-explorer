@@ -66,7 +66,9 @@ the image URLs provided by the API. No upstream key is needed for frontend tests
   Asia, Europe, Oceania and Antarctic (case-insensitive).
 - `GET /api/v1/countries/{alpha3}`: country details; codes accept either case.
 
-Names prefer Slovenian translations; search also matches canonical names.
+Common names use Slovenian native names or Java locale data, with canonical fallback.
+Official names use Slovenian native names when available, otherwise canonical names.
+Search matches both application display names and canonical names.
 Country data stays in memory: the complete projected catalogue and individual
 country details have separate Caffeine caches with a default 24-hour TTL.
 No country records or application entities are stored in PostgreSQL in this phase.

@@ -19,9 +19,9 @@ public record RestCountriesResponse(Data data) {
             List<String> borders, @JsonProperty("calling_codes") List<String> callingCodes,
             Cars cars, Flag flag) {}
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Codes(@JsonProperty("alpha_3") String alpha3) {}
+    public record Codes(@JsonProperty("alpha_2") String alpha2, @JsonProperty("alpha_3") String alpha3) {}
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Names(String common, String official, Map<String, Translation> translations) {}
+    public record Names(String common, String official, @JsonProperty("native") Map<String, Translation> nativeNames) {}
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Translation(String common, String official) {}
     @JsonIgnoreProperties(ignoreUnknown = true)

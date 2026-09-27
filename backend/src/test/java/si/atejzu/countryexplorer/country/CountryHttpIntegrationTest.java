@@ -103,9 +103,35 @@ class CountryHttpIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].code").value("ATA"));
         assertThat(requests).hasSize(2);
         assertThat(requests.stream().map(URI::getQuery)).containsExactly(
-                "limit=100&offset=0&response_fields=codes.alpha_3,names.common,names.official,names.translations.slv,capitals,population,region,flag.url_png,flag.url_svg",
-                "limit=100&offset=1&response_fields=codes.alpha_3,names.common,names.official,names.translations.slv,capitals,population,region,flag.url_png,flag.url_svg");
+                "limit=100&offset=0&response_fields=codes.alpha_2,codes.alpha_3,names.common,names.official,names.native.slv,capitals,population,region,flag.url_png,flag.url_svg",
+                "limit=100&offset=1&response_fields=codes.alpha_2,codes.alpha_3,names.common,names.official,names.native.slv,capitals,population,region,flag.url_png,flag.url_svg");
         assertThat(authorizations).containsOnly("Bearer test-only-placeholder");
+    }
+
+    @Test
+    void searchesNativeLocaleAndCanonicalNamesThroughPublicApi() throws Exception {
+        ok(CountryFixtures.page(CountryFixtures.SLOVENIA + "," + CountryFixtures.GERMANY, 2, 2, 0, false));
+        for (String search : List.of("slovenija", "slovenia", "republika slovenija", "republic of slovenia")) {
+            mvc.perform(get("/api/v1/countries").param("search", search))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].code").value("SVN"))
+                    .andExpect(jsonPath("$[0].name").value("Slovenija"));
+        }
+        for (String search : List.of("nemčija", "germany", "federal republic of germany")) {
+            mvc.perform(get("/api/v1/countries").param("search", search))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].code").value("DEU"))
+                    .andExpect(jsonPath("$[0].name").value("Nemčija"));
+        }
+        assertThat(requests).hasSize(1);
+    }
+
+    @Test
+    void unsupportedLocalizationInputDoesNotMakeValidDetailUnavailable() throws Exception {
+        ok(CountryFixtures.page(CountryFixtures.GERMANY.replace("\"DE\"", "\"ZZ\""), 1, 1, 0, false));
+        mvc.perform(get("/api/v1/countries/DEU"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.code").value("DEU"))
+                .andExpect(jsonPath("$.name").value("Germany"));
     }
 
     @Test
