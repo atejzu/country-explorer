@@ -1,0 +1,27 @@
+<section class="panel auth-panel" aria-labelledby="login-title">
+  <h1 id="login-title">Prijava</h1>
+  <app-auth-recovery [returnUrl]="returnUrl" />
+  @if ((auth.mutationsReady() || auth.loginPending()) && !auth.isAuthenticated() && !auth.isChecking() && !auth.logoutPending()) {
+    <form novalidate (submit)="onSubmit($event)" [attr.aria-busy]="auth.loginPending() || loginForm().submitting()">
+      <fieldset [disabled]="auth.loginPending() || loginForm().submitting()">
+        <div class="field">
+          <label for="login-email">E-poštni naslov</label>
+          <input id="login-email" type="email" autocomplete="username" [formField]="loginForm.email"
+            aria-describedby="login-email-errors" [attr.aria-invalid]="loginForm.email().touched() && loginForm.email().invalid()" />
+          <app-auth-field-errors id="login-email-errors" [field]="loginForm.email" />
+        </div>
+        <div class="field">
+          <label for="login-password">Geslo</label>
+          <input id="login-password" type="password" autocomplete="current-password" [formField]="loginForm.password"
+            aria-describedby="login-password-errors" [attr.aria-invalid]="loginForm.password().touched() && loginForm.password().invalid()" />
+          <app-auth-field-errors id="login-password-errors" [field]="loginForm.password" />
+        </div>
+        @if (error()) { <p role="alert">{{ error() }}</p> }
+        <button class="button primary" type="submit" [disabled]="auth.loginPending() || loginForm().submitting()">
+          {{ auth.loginPending() || loginForm().submitting() ? 'Prijava …' : 'Prijava' }}
+        </button>
+      </fieldset>
+    </form>
+  }
+  <p class="auth-secondary">Še nimaš računa? <a routerLink="/register" [queryParams]="{ returnUrl }">Ustvari ga.</a></p>
+</section>

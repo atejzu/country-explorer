@@ -3,8 +3,8 @@
 Petrol programming assignment. Phase 2B implements the Slovenian country explorer:
 search, region filtering, name/population sorting, country details and a Leaflet /
 OpenStreetMap map. Explorer state is shareable through URL query parameters.
-Phase 3A adds backend accounts and session authentication. Angular authentication
-UI, favourites and community features are not implemented yet.
+Phase 3B connects Angular login, registration and account pages to the backend's
+session authentication. Favourites and community features are not implemented yet.
 
 **Stack:** Java 21, Spring Boot 4.1.1, Maven Wrapper, PostgreSQL 17, Flyway,
 Angular 22, Node.js 24.15.0, npm, Vitest and Docker Compose. Nginx serves the
@@ -106,7 +106,33 @@ send the plain `XSRF-TOKEN` cookie value as `X-XSRF-TOKEN`, and bootstrap again 
 login/logout. Only the XSRF cookie is JavaScript-readable. Spring Security's SPA
 handling retains BREACH protection. Security errors use `application/problem+json`;
 CSRF and authorization failures return `403 ACCESS_DENIED`. The same-origin proxy
-requires no CORS configuration. Angular will wire this lifecycle in Phase 3B.
+requires no CORS configuration.
+
+## Angular authentication
+
+On startup, an app initializer calls `/api/v1/auth/csrf` and then `/api/v1/users/me`
+to restore the session into an in-memory signal store. An anonymous response is
+normal. Network failures leave country browsing available and expose an explicit
+retry on the auth pages; auth submissions stay blocked until initialization recovers.
+
+`/login` and `/register` use Angular Signal Forms with Slovenian validation.
+Registration does not sign in automatically. Login refreshes CSRF before updating
+authenticated state and navigating to a validated local return URL. The reusable
+`authGuard` protects `/account`, which displays only the current user's basic
+account information. Backend authorization remains authoritative.
+
+An unconfirmed login blocks further auth submissions until an explicit CSRF/session
+check establishes the outcome; it never automatically repeats the login request.
+Session operations are coordinated across page navigation, and stale responses
+cannot replace a newer authenticated identity. Only recoverable reads have a client
+timeout; registration, login and logout POSTs have no automatic timeout or retry.
+
+Angular's built-in XSRF support handles the `XSRF-TOKEN` cookie / `X-XSRF-TOKEN`
+header for relative same-origin requests. Logout clears local identity, refreshes
+anonymous CSRF and returns home, including when the session has already expired.
+Unexpected session expiry clears the signed-in navigation and displays a brief
+notification. No JWT, credential persistence or browser token storage is used.
+Favourites navigation and community functionality remain pending.
 
 ## Development and tests
 

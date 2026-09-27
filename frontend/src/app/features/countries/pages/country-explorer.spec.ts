@@ -6,6 +6,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { Location } from '@angular/common';
 import { provideLocationMocks } from '@angular/common/testing';
 import { appConfig } from '../../../app.config';
+import { initializeTestSession } from '../../../core/auth/auth.fixture';
 import { summary } from '../models/country.fixture';
 describe('Country explorer', () => {
   let http: HttpTestingController;
@@ -23,7 +24,9 @@ describe('Country explorer', () => {
   function type(value: string) { input().value = value; input().dispatchEvent(new Event('input')); }
   beforeEach(async () => {
     TestBed.configureTestingModule({ providers: [...appConfig.providers, provideHttpClientTesting(), provideLocationMocks()] });
-    http = TestBed.inject(HttpTestingController); router = TestBed.inject(Router);
+    http = TestBed.inject(HttpTestingController);
+    await initializeTestSession();
+    router = TestBed.inject(Router);
     harness = await RouterTestingHarness.create();
   });
   afterEach(() => { vi.useRealTimers(); try { http.verify(); } finally { TestBed.resetTestingModule(); } });

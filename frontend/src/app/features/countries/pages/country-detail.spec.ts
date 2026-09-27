@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { appConfig } from '../../../app.config';
+import { initializeTestSession } from '../../../core/auth/auth.fixture';
 import { CountryDetail } from './country-detail';
 import { CountryMap } from '../components/country-map';
 import { detail } from '../models/country.fixture';
@@ -15,7 +16,9 @@ describe('Country detail', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({ providers: [...appConfig.providers, provideHttpClientTesting()] });
     TestBed.overrideComponent(CountryDetail, { remove: { imports: [CountryMap] }, add: { imports: [MapStub] } });
-    http = TestBed.inject(HttpTestingController); harness = await RouterTestingHarness.create();
+    http = TestBed.inject(HttpTestingController);
+    await initializeTestSession();
+    harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/countries/SVN');
   });
   afterEach(() => http.verify());

@@ -1,0 +1,39 @@
+<section class="panel auth-panel" aria-labelledby="register-title">
+  <h1 id="register-title">Ustvari račun</h1>
+  <app-auth-recovery [returnUrl]="returnUrl" />
+  @if (auth.mutationsReady() && !auth.isAuthenticated()) {
+    <form novalidate (submit)="onSubmit($event)" [attr.aria-busy]="registerForm().submitting()">
+      <fieldset [disabled]="registerForm().submitting()">
+        <div class="field">
+          <label for="register-username">Uporabniško ime</label>
+          <input id="register-username" type="text" autocomplete="username" [formField]="registerForm.username"
+            aria-describedby="register-username-errors" [attr.aria-invalid]="registerForm.username().touched() && registerForm.username().invalid()" />
+          <app-auth-field-errors id="register-username-errors" [field]="registerForm.username" />
+        </div>
+        <div class="field">
+          <label for="register-email">E-poštni naslov</label>
+          <input id="register-email" type="email" autocomplete="email" [formField]="registerForm.email"
+            aria-describedby="register-email-errors" [attr.aria-invalid]="registerForm.email().touched() && registerForm.email().invalid()" />
+          <app-auth-field-errors id="register-email-errors" [field]="registerForm.email" />
+        </div>
+        <div class="field">
+          <label for="register-password">Geslo</label>
+          <input id="register-password" type="password" autocomplete="new-password" [formField]="registerForm.password"
+            aria-describedby="register-password-errors" [attr.aria-invalid]="registerForm.password().touched() && registerForm.password().invalid()" />
+          <app-auth-field-errors id="register-password-errors" [field]="registerForm.password" />
+        </div>
+        <div class="field">
+          <label for="register-confirmPassword">Ponovi geslo</label>
+          <input id="register-confirmPassword" type="password" autocomplete="new-password" [formField]="registerForm.confirmPassword"
+            aria-describedby="register-confirmPassword-errors" [attr.aria-invalid]="registerForm.confirmPassword().touched() && registerForm.confirmPassword().invalid()" />
+          <app-auth-field-errors id="register-confirmPassword-errors" [field]="registerForm.confirmPassword" />
+        </div>
+        @if (error()) { <p role="alert">{{ error() }}</p> }
+        <button class="button primary" type="submit" [disabled]="registerForm().submitting()">
+          {{ registerForm().submitting() ? 'Ustvarjanje računa …' : 'Ustvari račun' }}
+        </button>
+      </fieldset>
+    </form>
+  }
+  <p class="auth-secondary">Že imaš račun? <a routerLink="/login" [queryParams]="{ returnUrl }">Prijavi se.</a></p>
+</section>

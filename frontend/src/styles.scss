@@ -11,6 +11,9 @@
   --color-fog: #E8E8E8;
   --color-graphite: #666666;
   --color-ash: #999999;
+  --color-ember: #FF3E00;
+  --color-mint-wash: #DEF6E4;
+  --shadow-subtle-3: 0 1px 3px #0000000f, 0 8px 16px #0000000f, 0 0 0 1px #00000005;
   --color-control-border: #8B95A5;
   --color-control-border-hover: #6F7B8F;
   --spacing-4: 4px;
@@ -57,6 +60,16 @@ input:focus, select:focus { border-color: var(--color-primary); }
 .primary { background: var(--color-primary); color: white; }
 .primary:hover { background: #4338CA; }
 .primary:active { background: #3730A3; }
+.button:disabled { background: var(--color-mist); color: var(--color-ash); cursor: default; box-shadow: none; }
+.auth-panel { max-width: 480px; margin-inline: auto; }
+.auth-panel h1 { margin-bottom: var(--spacing-24); }
+.auth-panel fieldset { display: grid; gap: var(--spacing-20); min-width: 0; padding: 0; margin: 0; border: 0; }
+.auth-secondary { margin-top: var(--spacing-24); }
+.auth-secondary a { display: inline-block; padding-block: var(--spacing-12); }
+.auth-feedback { display: grid; gap: var(--spacing-16); }
+.field-error { margin-top: var(--spacing-4); font-size: 14px; }
+input[aria-invalid="true"] { border-color: var(--color-ember); }
+input:focus-visible { box-shadow: 0 0 0 3px #4f46e51a; }
 .ghost { background: transparent; color: var(--color-graphite); }
 .ghost:hover { background: var(--color-mist); color: var(--color-carbon); }
 .chip { border: 1px solid var(--color-fog); border-radius: var(--radius-sm); background: var(--color-mist); padding: var(--spacing-4) var(--spacing-8); font-size: 12px; }
