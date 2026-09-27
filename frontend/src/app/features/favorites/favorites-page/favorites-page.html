@@ -1,0 +1,29 @@
+<div class="page-heading"><h1 tabindex="-1">Priljubljene države</h1>
+  <p class="muted">Tvoje shranjene države na enem mestu.</p></div>
+@if (auth.isAuthenticated()) {
+  @if (store.loading()) {
+    <p role="status">Nalaganje priljubljenih držav …</p>
+    <div class="country-grid" aria-busy="true" aria-label="Nalaganje priljubljenih držav">
+      @for (item of [0, 1, 2, 3]; track item) { <app-country-skeleton /> }
+    </div>
+  } @else if (store.error()) {
+    <section class="panel empty" role="alert"><h2>Priljubljenih držav ni bilo mogoče naložiti.</h2>
+      <button type="button" class="button primary" (click)="store.ensureLoaded()">Poskusi znova</button></section>
+  } @else if (store.loaded()) {
+    @if (store.visibleFavorites().length) {
+      <p class="count" role="status">Število priljubljenih držav: {{ store.visibleFavorites().length }}</p>
+      <div class="country-grid">
+        @for (item of store.visibleFavorites(); track item.country.code) {
+          <app-country-card [country]="item.country" [attr.data-code]="item.country.code" />
+        }
+      </div>
+    } @else {
+      <section class="panel empty"><h2>Nimaš še shranjenih priljubljenih držav.</h2>
+        <p>Uporabi srček pri državi, da jo shraniš sem.</p>
+        <a class="button primary explore" routerLink="/">Razišči države</a></section>
+    }
+  }
+} @else {
+  <section class="panel empty"><h2>Za nadaljevanje se prijavi.</h2>
+    <a class="button primary" routerLink="/login" [queryParams]="{ returnUrl: '/favorites' }">Prijava</a></section>
+}

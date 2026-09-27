@@ -37,6 +37,7 @@
           @if (country.officialName) { <p class="muted">{{ country.officialName }}</p> }
           <p class="caption">{{ country.code }}</p>
         </div>
+        <app-favorite-button [country]="summary(country)" [full]="true" />
       </header>
       <dl class="detail-data">
         @if (country.capital.length) { <div><dt>Glavno mesto</dt><dd>{{ country.capital.join(', ') }}</dd></div> }

@@ -45,6 +45,7 @@ describe('authentication routes and guards', () => {
     ('redirects safely home without loops from %s', async url => {
       await initializeTestSession(true); await RouterTestingHarness.create(url);
       http.expectOne(r => r.url === '/api/v1/countries').flush([]);
+      http.expectOne('/api/v1/users/me/favorites').flush([]);
       expect(TestBed.inject(Router).url).toBe('/');
     });
 });

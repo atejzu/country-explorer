@@ -100,13 +100,13 @@ describe('Application foundation', () => {
     controller.verify();
   });
 
-  it('renders anonymous navigation without dead favourites links', async () => {
+  it('renders anonymous navigation including the protected favourites destination', async () => {
     const fixture = TestBed.createComponent(App); await fixture.whenStable();
     const element: HTMLElement = fixture.nativeElement;
     expect(element.querySelector('nav')?.textContent).toContain('Razišči');
     expect(element.querySelector('nav')?.textContent).toContain('Prijava');
     expect(element.querySelector('details')).toBeNull();
-    expect(element.querySelector('a[href="/favorites"]')).toBeNull();
+    expect(element.querySelector('a[href="/favorites"]')?.textContent).toBe('Priljubljene');
   });
 
   it('renders a keyboard-accessible account disclosure and closes it on navigation', async () => {
@@ -115,7 +115,7 @@ describe('Application foundation', () => {
     const element: HTMLElement = fixture.nativeElement;
     const menu = element.querySelector('details')!; const summary = menu.querySelector('summary')!;
     expect(summary.textContent).toBe(currentUser.username);
-    expect(menu.textContent).toContain('Račun'); expect(menu.textContent).toContain('Odjava');
+    expect(menu.textContent).toContain('Račun'); expect(menu.textContent).toContain('Priljubljene'); expect(menu.textContent).toContain('Odjava');
     summary.click(); expect(menu.open).toBe(true);
     menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(menu.open).toBe(false); expect(document.activeElement).toBe(summary);
@@ -174,5 +174,12 @@ describe('Application foundation', () => {
       client.get('/api/v1/auth/csrf').subscribe(); const get = http.expectOne('/api/v1/auth/csrf');
       expect(get.request.headers.has('X-XSRF-TOKEN')).toBe(false); get.flush(null);
     } finally { document.cookie = 'XSRF-TOKEN=; Max-Age=0; path=/'; }
+  });
+  it('keeps the guest favourites navigation visible and routes its click through authGuard', async () => {
+    const fixture = TestBed.createComponent(App); await fixture.whenStable();
+    fixture.nativeElement.querySelector('nav a[href="/favorites"]').click(); await fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/login?returnUrl=%2Ffavorites');
+    expect(fixture.nativeElement.querySelector('main h1').textContent).toBe('Prijava');
+    TestBed.inject(HttpTestingController).verify();
   });
 });

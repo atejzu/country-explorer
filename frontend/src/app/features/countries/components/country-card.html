@@ -1,7 +1,10 @@
-<article class="country panel">
-  @if (country().flag.svg || country().flag.png; as source) {
-    <img class="flag" [src]="source" [alt]="country().flag.alt" width="48" height="32" loading="lazy">
-  }
+<article class="country panel" [class.saved]="favorites.isFavorite(country().code)">
+  <div class="country-heading">
+    @if (country().flag.svg || country().flag.png; as source) {
+      <img class="flag" [src]="source" [alt]="country().flag.alt" width="48" height="32" loading="lazy">
+    }
+    <app-favorite-button [country]="country()" />
+  </div>
   <div><h2>{{ country().name }}</h2><p class="caption">{{ country().code }}</p></div>
   <dl class="facts">
     <div><dt>Glavno mesto</dt><dd>{{ country().capital || 'Ni podatka' }}</dd></div>

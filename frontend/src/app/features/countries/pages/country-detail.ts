@@ -1,14 +1,17 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, distinctUntilChanged, map, of, startWith, Subject, switchMap } from 'rxjs';
+import { AuthStore } from '../../../core/auth/auth-store';
+import { FavoritesStore } from '../../favorites/favorites-store';
 import { CountryApi } from '../data-access/country-api';
 import { CountryLoadState, countryFailure } from '../data-access/country-load-state';
-import { CountryCurrency, CountryLanguage, CountryDetail as CountryDetailModel } from '../models/country';
+import { CountryCurrency, CountryLanguage, CountrySummary, CountryDetail as CountryDetailModel } from '../models/country';
 import { displayName, drivingSideLabel, regionLabel, subregionLabel } from '../models/country-labels';
+import { FavoriteButton } from '../../favorites/favorite-button/favorite-button';
 import { CountryMap } from '../components/country-map';
-@Component({ selector: 'app-country-detail', imports: [DecimalPipe, RouterLink, CountryMap],
+@Component({ selector: 'app-country-detail', imports: [DecimalPipe, RouterLink, CountryMap, FavoriteButton],
   templateUrl: './country-detail.html', styleUrl: './country-detail.scss' })
 export class CountryDetail {
   private readonly api = inject(CountryApi);
@@ -33,6 +36,18 @@ export class CountryDetail {
       startWith({ status: 'loading' } as const),
     )))),
   ), { initialValue: { status: 'loading' } as CountryLoadState<CountryDetailModel> });
+  constructor() {
+    const auth = inject(AuthStore);
+    const favorites = inject(FavoritesStore);
+    effect(() => {
+      const user = auth.user();
+      if (auth.isAuthenticated() && user) untracked(() => favorites.ensureLoaded());
+    });
+  }
+  protected summary(country: CountryDetailModel): CountrySummary {
+    return { code: country.code, name: country.name, capital: country.capital.join(', ') || null,
+      population: country.population, region: country.region, flag: country.flag };
+  }
   protected validCoordinates(value: CountryDetailModel['coordinates']): value is { latitude: number; longitude: number } {
     return value !== null && value.latitude !== null && value.longitude !== null &&
       Number.isFinite(value.latitude) && Number.isFinite(value.longitude) &&

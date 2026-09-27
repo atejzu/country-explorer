@@ -12,11 +12,13 @@ import { NotificationRegion } from '../../notifications/notification-region/noti
       <a class="wordmark" routerLink="/">Country Explorer</a>
       <nav aria-label="Glavna navigacija"><a routerLink="/" routerLinkActive="current"
         [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }" ariaCurrentWhenActive="page">Razišči</a>
+        <a routerLink="/favorites" routerLinkActive="current" ariaCurrentWhenActive="page">Priljubljene</a>
         @if (auth.isAuthenticated()) {
           <details #accountMenu (keydown.escape)="closeMenu(true)">
             <summary>{{ auth.user()?.username }}</summary>
             <div class="account-menu">
               <a routerLink="/account" routerLinkActive="current" ariaCurrentWhenActive="page">Račun</a>
+              <a routerLink="/favorites" routerLinkActive="current" ariaCurrentWhenActive="page">Priljubljene</a>
               <app-logout-button />
             </div>
           </details>

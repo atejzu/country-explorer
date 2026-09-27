@@ -68,4 +68,26 @@ describe('Country detail', () => {
     http.expectOne('/api/v1/countries/SVN').flush({ code: 'INTERNAL_ERROR', detail: 'stacktrace' }, { status: 500, statusText: 'Error' });
     await render(); expect(element().textContent).not.toContain('stacktrace'); expect(element().textContent).toContain('Poskusi znova');
   });
+  it('loads authenticated favourites independently, renders public details on favourite failure and permits saving', async () => {
+    await initializeTestSession(true); await render();
+    http.expectOne('/api/v1/users/me/favorites').flush({}, { status: 503, statusText: 'Unavailable' });
+    http.expectOne('/api/v1/countries/SVN').flush(detail); await render();
+    expect(element().querySelector('h1')?.textContent).toBe('Slovenija');
+    expect(element().querySelector('app-country-map')).not.toBeNull();
+    const button = element().querySelector<HTMLButtonElement>('app-favorite-button button')!;
+    expect(button.textContent).toContain('Shrani državo'); button.click(); await render();
+    expect(button.textContent).toContain('Shranjeno'); expect(button.getAttribute('aria-pressed')).toBe('true');
+    http.expectOne('/api/v1/users/me/favorites/SVN').flush(null);
+    await harness.navigateByUrl('/countries/AUT'); http.expectOne('/api/v1/countries/AUT').flush({ ...detail, code: 'AUT' });
+    // A failed list can retry at a later view, but a reused detail view does not loop.
+    http.expectNone('/api/v1/users/me/favorites');
+  });
+  it('reflects the existing shared favourite state on detail', async () => {
+    await initializeTestSession(true); await render();
+    http.expectOne('/api/v1/users/me/favorites').flush([{ country: { ...detail, capital: 'Ljubljana' }, favoritedAt: '2026-09-26T11:45:00Z' }]);
+    http.expectOne('/api/v1/countries/SVN').flush(detail); await render();
+    const button = element().querySelector<HTMLButtonElement>('app-favorite-button button')!;
+    expect(button.textContent).toContain('Shranjeno'); button.click(); await render();
+    expect(button.textContent).toContain('Shrani državo'); http.expectOne('/api/v1/users/me/favorites/SVN').flush(null);
+  });
 });

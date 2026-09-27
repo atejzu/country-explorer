@@ -4,8 +4,11 @@ Petrol programming assignment. Phase 2B implements the Slovenian country explore
 search, region filtering, name/population sorting, country details and a Leaflet /
 OpenStreetMap map. Explorer state is shareable through URL query parameters.
 Phase 3B connects Angular login, registration and account pages to the backend's
-session authentication. Phase 4A adds the backend favourites API and persistence.
-Angular favourites UI is pending Phase 4B; community remains pending.
+session authentication. Favourites now include backend persistence and the Angular UI:
+authenticated users can add, remove and view saved countries at `/favorites`.
+Explorer cards and country details share optimistic favourite state with rollback
+on failure. Guest favourite actions preserve the complete safe `returnUrl`; a chosen
+action can complete once after confirmed login. Community remains pending.
 
 **Stack:** Java 21, Spring Boot 4.1.1, Maven Wrapper, PostgreSQL 17, Flyway,
 Angular 22, Node.js 24.15.0, npm, Vitest and Docker Compose. Nginx serves the
@@ -125,7 +128,8 @@ preserve the original timestamp. PostgreSQL stores only a UUID, owner, country c
 and timestamp. CountryService validates new favourites and enriches lists from the
 cached catalogue, without a detail request per favourite. Country failures use the
 existing `404 COUNTRY_NOT_FOUND` / `503 COUNTRY_SERVICE_UNAVAILABLE` errors.
-Angular favourites UI remains pending Phase 4B; community is not implemented.
+The Angular favourites page loads on demand and keeps removing cards in place until
+the server confirms deletion. Logout and session changes clear protected state.
 
 ## Angular authentication
 
@@ -151,7 +155,9 @@ header for relative same-origin requests. Logout clears local identity, refreshe
 anonymous CSRF and returns home, including when the session has already expired.
 Unexpected session expiry clears the signed-in navigation and displays a brief
 notification. No JWT, credential persistence or browser token storage is used.
-Favourites navigation and community functionality remain pending.
+Favourites navigation remains visible to guests and uses the existing auth guard.
+Pending favourite actions stay in memory and are discarded on cancellation, session
+expiry, logout or an unconfirmed login; failed requests are never automatically replayed.
 
 ## Development and tests
 

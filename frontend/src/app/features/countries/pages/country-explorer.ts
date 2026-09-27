@@ -1,8 +1,10 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, distinctUntilChanged, map, of, startWith, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { AuthStore } from '../../../core/auth/auth-store';
+import { FavoritesStore } from '../../favorites/favorites-store';
 import { CountryApi } from '../data-access/country-api';
 import { CountryLoadState, countryFailure } from '../data-access/country-load-state';
 import { CountryQuery, CountrySummary, REGIONS } from '../models/country';
@@ -41,6 +43,12 @@ export class CountryExplorer {
     )))),
   ), { initialValue: { status: 'loading' } as CountryLoadState<CountrySummary[]> });
   constructor() {
+    const auth = inject(AuthStore);
+    const favorites = inject(FavoritesStore);
+    effect(() => {
+      const user = auth.user();
+      if (auth.isAuthenticated() && user) untracked(() => favorites.ensureLoaded());
+    });
     this.searches.pipe(
       switchMap(value => timer(300).pipe(map(() => value.trim()), takeUntil(this.cancelSearch))),
       takeUntilDestroyed(),

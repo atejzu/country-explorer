@@ -9,6 +9,8 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login/login').then(m => m.Login) },
   { path: 'register', title: 'Ustvari račun · Country Explorer', canActivate: [anonymousGuard],
     loadComponent: () => import('./features/auth/register/register').then(m => m.Register) },
+  { path: 'favorites', title: 'Priljubljene · Country Explorer', canActivate: [authGuard],
+    loadComponent: () => import('./features/favorites/favorites-page/favorites-page').then(m => m.FavoritesPage) },
   { path: 'account', title: 'Račun · Country Explorer', canActivate: [authGuard],
     loadComponent: () => import('./features/account/account-page/account-page').then(m => m.AccountPage) },
   { path: '**', title: 'Stran ni najdena · Country Explorer',

@@ -52,7 +52,10 @@ describe('Login Signal Form', () => {
     expect(TestBed.inject(AuthStore).user()).toEqual(authUser);
     expect(TestBed.inject(Router).url).toBe(destination);
     if (destination.startsWith('/account')) http.expectOne('/api/v1/users/me').flush(currentUser);
-    else http.expectOne(r => r.url === '/api/v1/countries').flush([]);
+    else {
+      http.expectOne(r => r.url === '/api/v1/countries').flush([]);
+      http.expectOne('/api/v1/users/me/favorites').flush([]);
+    }
   });
   it('keeps email and shows exact generic credentials copy without an expiry notification', async () => {
     input('email', currentUser.email); input('password', 'test-only'); submit();
@@ -91,6 +94,7 @@ describe('Login Signal Form', () => {
     http.expectOne('/api/v1/users/me').flush(currentUser); await render();
     expect(TestBed.inject(Router).url).toBe('/');
     http.expectOne(r => r.url === '/api/v1/countries').flush([]);
+    http.expectOne('/api/v1/users/me/favorites').flush([]);
   });
   it('keeps pending login global across navigation and a new login page instance', async () => {
     input('email', currentUser.email); input('password', 'test-only'); submit();

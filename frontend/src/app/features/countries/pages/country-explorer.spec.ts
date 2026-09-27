@@ -116,4 +116,19 @@ describe('Country explorer', () => {
     expect(router.url).toBe('/?region=Europe'); retried.flush([summary]); await render();
     expect(element().textContent).toContain('Slovenija');
   });
+  it('loads favourites once at page level for many authenticated cards and preserves the full URL', async () => {
+    await initializeTestSession(true); await start('/?search=slov&region=Europe#results');
+    request().flush(Array.from({ length: 20 }, (_, index) => ({ ...summary, code: `C${index}` }))); await render();
+    http.expectOne('/api/v1/users/me/favorites').flush([]); await render();
+    expect(element().querySelectorAll('app-country-card')).toHaveLength(20);
+    element().querySelector<HTMLButtonElement>('app-favorite-button button')!.click(); await render();
+    http.expectOne('/api/v1/users/me/favorites/C0').flush(null);
+    expect(router.url).toBe('/?search=slov&region=Europe#results');
+    http.expectNone('/api/v1/users/me/favorites');
+  });
+  it('never loads guest favourites and keeps their hearts visible', async () => {
+    await start(); request().flush([summary]); await render();
+    expect(element().querySelector('app-favorite-button button')).not.toBeNull();
+    http.expectNone('/api/v1/users/me/favorites');
+  });
 });
