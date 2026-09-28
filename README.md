@@ -1,21 +1,20 @@
 # Country Explorer
 
-Programerska naloga za Petrol. Faza 2B vključuje raziskovalnik držav v slovenščini:
-iskanje, filtriranje po regijah, razvrščanje po imenu ali številu prebivalcev,
-podrobnosti o državi in zemljevid Leaflet / OpenStreetMap. Stanje raziskovalnika
-je mogoče deliti prek parametrov v URL-ju.
-Faza 3B povezuje Angular strani za prijavo, registracijo in uporabniški račun
-z avtentikacijo na backendu prek seje. Priljubljene države vključujejo shranjevanje
-na backendu in uporabniški vmesnik v Angularju: prijavljeni uporabniki lahko države
-dodajajo, odstranjujejo in si jih ogledajo na `/favorites`.
-Kartice držav in podrobnosti o državi si delijo optimistično stanje priljubljenih
-držav, ki se ob napaki povrne. Dejanja neprijavljenih uporabnikov ohranijo celoten
-varen `returnUrl`; izbrano dejanje se lahko izvede enkrat po potrjeni prijavi.
-Faza 5B dodaja javne razprave o državah in podrobnosti razprave s komentarji,
-razdeljenimi na strani. Prijavljeni uporabniki lahko ustvarjajo vsebino ter urejajo
-in brišejo svojo vsebino, kadar je to dovoljeno. Prvi komentar trajno zaklene
-urejanje in brisanje razprave; komentiranje ter urejanje in brisanje lastnih
-komentarjev ostanejo na voljo tudi po izbrisu vseh komentarjev.
+Country Explorer je spletna aplikacija, izdelana v okviru programerske naloge za Petrol.
+Omogoča iskanje držav, filtriranje po regijah, razvrščanje po imenu ali številu
+prebivalcev ter ogled podrobnosti posamezne države z zemljevidom Leaflet /
+OpenStreetMap. Stanje raziskovalnika je mogoče deliti prek parametrov v URL-ju.
+
+Poleg osnovnih zahtev aplikacija vključuje avtentikacijo uporabnikov, priljubljene
+države ter javne razprave in komentarje. Podatki uporabnikov, priljubljenih držav,
+razprav in komentarjev se shranjujejo v PostgreSQL. Prijavljeni uporabniki lahko
+ustvarjajo vsebino ter urejajo in brišejo svojo vsebino, kadar je to dovoljeno.
+Prvi komentar trajno zaklene urejanje in brisanje razprave, komentiranje ter urejanje
+in brisanje lastnih komentarjev pa ostanejo na voljo.
+
+Aplikacija vključuje tudi obravnavo napak, optimistične posodobitve priljubljenih
+držav, zaščito CSRF, upravljanje uporabniških sej, predpomnjenje podatkov o državah,
+Docker Compose konfiguracijo ter avtomatizirane backend in frontend teste.
 
 **Tehnologije:** Java 21, Spring Boot 4.1.1, Maven Wrapper, PostgreSQL 17, Flyway,
 Angular 22, Node.js 24.15.0, npm, Vitest in Docker Compose. Nginx streže
