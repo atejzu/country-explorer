@@ -1,4 +1,6 @@
 @use './styles/fonts';
+@use './styles/globe-page';
+@use './styles/globe-card';
 @import 'leaflet/dist/leaflet.css';
 
 :root {

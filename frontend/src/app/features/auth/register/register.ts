@@ -9,9 +9,10 @@ import { safeReturnUrl } from '../../../core/auth/safe-return-url';
 import { apiProblem } from '../../../core/http/api-problem';
 import { AuthRecovery } from '../auth-recovery';
 import { AuthFieldErrors } from '../auth-field-errors';
+import { GlobeBackground } from '../../../shared/ui/globe-background/globe-background';
 
 @Component({
-  selector: 'app-register', imports: [FormField, RouterLink, AuthRecovery, AuthFieldErrors],
+  selector: 'app-register', imports: [FormField, RouterLink, AuthRecovery, AuthFieldErrors, GlobeBackground],
   templateUrl: './register.html',
 })
 export class Register {

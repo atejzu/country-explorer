@@ -1,0 +1,16 @@
+// Isolate the fixed decoration below the selected page's content without changing layout.
+main.container:has(> :is(app-country-explorer, app-login, app-register, app-account-page) > app-globe-background) {
+  isolation: isolate;
+
+  > :is(app-country-explorer, app-login, app-register, app-account-page) > :not(app-globe-background) {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+// The existing header is transparent; retain its plain white appearance above the fixed layer.
+app-shell:has(> main > :is(app-country-explorer, app-login, app-register, app-account-page) > app-globe-background) > header {
+  position: relative;
+  z-index: 1;
+  background: var(--color-paper-white);
+}

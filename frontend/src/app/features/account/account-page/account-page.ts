@@ -7,10 +7,12 @@ import { AuthApi } from '../../../core/auth/auth-api';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { LogoutButton } from '../../../core/auth/logout-button';
 import { AUTH_READ_TIMEOUT_MS } from '../../../core/auth/auth-read-timeout';
+import { GlobeBackground } from '../../../shared/ui/globe-background/globe-background';
 
 @Component({
-  selector: 'app-account-page', imports: [DatePipe, RouterLink, LogoutButton],
+  selector: 'app-account-page', imports: [DatePipe, RouterLink, LogoutButton, GlobeBackground],
   template: `
+    <app-globe-background />
     <section class="panel auth-panel" aria-labelledby="account-title">
       <h1 id="account-title">Račun</h1>
       @if (!auth.isAuthenticated()) {

@@ -23,7 +23,8 @@
       @for (comment of result()?.items; track comment.id) {
         <app-comment-item [comment]="comment" [ownershipBlocked]="deniedIds().has(comment.id)" (updated)="updated($event)" (deleted)="deleted(comment.id)" (unavailable)="unavailable($event, comment.id)" />
       } @empty {
-        @if (!loading() && !error()) { <div class="panel empty"><h3>Komentarjev še ni.</h3><p>Bodi prvi, ki odgovori.</p></div> }
+        @if (!loading() && !error()) { <div class="panel empty globe-card"><app-globe-card-pattern />
+          <h3>Komentarjev še ni.</h3><p>Bodi prvi, ki odgovori.</p></div> }
       }
     </div>
   }

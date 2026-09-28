@@ -25,24 +25,33 @@ describe('FavoritesPage', () => {
     harness = await RouterTestingHarness.create('/favorites'); await render();
   });
   afterEach(() => http.verify());
+  it('does not include the page-level globe background', async () => {
+    expect(element().querySelector('app-globe-background')).toBeNull();
+    await load();
+    expect(element().querySelector('app-globe-background')).toBeNull();
+  });
   it('uses the existing authGuard and a lazy route with the approved title', async () => {
     const route = routes.find(route => route.path === 'favorites')!;
     expect(route.canActivate).toEqual([authGuard]); expect(route.loadComponent).toBeDefined();
     expect(route.title).toBe('Priljubljene · Country Explorer'); await load();
   });
   it('shows structured card skeletons and accessible loading context', async () => {
+    expect(element().querySelector('app-globe-card-pattern')).toBeNull();
     expect(element().textContent).toContain('Nalaganje priljubljenih držav …');
     expect(element().querySelector('[aria-busy="true"]')).not.toBeNull();
     expect(element().querySelectorAll('app-country-skeleton')).toHaveLength(4); await load();
   });
   it('renders the shared CountryCard grid, heading, support copy and count', async () => {
     await load(); expect(cards()).toHaveLength(2); expect(element().querySelectorAll('h1')).toHaveLength(1);
+    expect(element().querySelector('app-globe-card-pattern')).toBeNull();
     expect(element().textContent).toContain('Priljubljene države'); expect(element().textContent).toContain('Tvoje shranjene države na enem mestu.');
     expect(element().textContent).toContain('Število priljubljenih držav: 2'); expect(button().getAttribute('aria-pressed')).toBe('true');
     expect(element().querySelector('input, select')).toBeNull();
   });
   it('shows the exact empty copy and explorer link', async () => {
     await load([]); expect(element().textContent).toContain('Nimaš še shranjenih priljubljenih držav.');
+    expect(element().querySelector('.globe-card > app-globe-card-pattern')?.getAttribute('aria-hidden')).toBe('true');
+    expect(element().querySelector('app-globe-background')).toBeNull();
     expect(element().textContent).toContain('Uporabi srček pri državi, da jo shraniš sem.');
     const link = element().querySelector<HTMLAnchorElement>('.explore')!;
     expect(link.textContent).toBe('Razišči države'); expect(link.getAttribute('href')).toBe('/');
@@ -51,9 +60,11 @@ describe('FavoritesPage', () => {
   });
   it('shows an inline load failure and retries instead of displaying an empty list', async () => {
     http.expectOne(URL).flush({}, { status: 503, statusText: 'Unavailable' }); await render();
+    expect(element().querySelector('app-globe-card-pattern')).toBeNull();
     expect(element().querySelector('[role="alert"]')?.textContent).toContain('Priljubljenih držav ni bilo mogoče naložiti.');
     expect(element().textContent).not.toContain('Nimaš še');
     element().querySelector('button')!.click(); await render(); expect(element().textContent).toContain('Nalaganje priljubljenih');
+    expect(element().querySelector('app-globe-card-pattern')).toBeNull();
     await load(); expect(cards()).toHaveLength(2);
   });
   it('retains the same card node and position while removing, with optimistic heart and outline', async () => {

@@ -24,12 +24,15 @@ describe('Country discussion section and creation', () => {
     await loaded(); await initializeTestSession(true); await render(); button(root(), 'Začni razpravo').click(); await render();
   }
   it('shows a local skeleton, section heading and guest create capability', async () => {
+    expect(root().querySelector('app-globe-card-pattern')).toBeNull();
     expect(root().textContent).toContain('Razprave'); expect(root().textContent).toContain('Nalaganje razprav');
     expect(button(root(), 'Začni razpravo').disabled).toBe(false); await loaded();
     expect(root().textContent).toContain('Ta država še nima razprav.'); expect(root().textContent).toContain('Začni prvi pogovor.');
+    expect(root().querySelector('.globe-card > app-globe-card-pattern')?.getAttribute('aria-hidden')).toBe('true');
   });
   it('renders cards without guest lock status and paginates with labeled controls', async () => {
     http.expectOne(URL + '?page=0&size=10').flush(page([{ ...discussion, locked: true }], 0, 10, 11)); await render();
+    expect(root().querySelector('app-globe-card-pattern')).toBeNull();
     expect(root().querySelector('a')?.getAttribute('href')).toBe('/discussions/discussion-1');
     expect(root().textContent).not.toContain('Urejanje zaklenjeno'); expect(root().textContent).toContain(discussion.author.username);
     expect(root().querySelectorAll('app-community-pagination button')).toHaveLength(2);
@@ -53,7 +56,9 @@ describe('Country discussion section and creation', () => {
   });
   it('retries only the failed section', async () => {
     http.expectOne(URL + '?page=0&size=10').flush(problem('INTERNAL_ERROR', 500), { status: 500, statusText: 'Error' }); await render();
-    expect(root().textContent).toContain('Razprav ni bilo mogoče naložiti.'); button(root(), 'Poskusi znova').click(); await loaded();
+    expect(root().querySelector('app-globe-card-pattern')).toBeNull();
+    expect(root().textContent).toContain('Razprav ni bilo mogoče naložiti.'); button(root(), 'Poskusi znova').click(); await render();
+    expect(root().querySelector('app-globe-card-pattern')).toBeNull(); await loaded();
     http.expectNone('/api/v1/countries/SVN');
   });
   it('opens the shared guest prompt with the exact purpose, without a POST', async () => {

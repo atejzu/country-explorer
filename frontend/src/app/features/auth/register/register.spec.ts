@@ -30,6 +30,10 @@ describe('Registration Signal Form', () => {
   });
   afterEach(() => { http.verify(); vi.useRealTimers(); });
 
+  it('includes the shared background hidden from assistive technology', () => {
+    expect(element().querySelector('app-globe-background')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
   it('does not cancel a registration POST on an arbitrary ten-second deadline', async () => {
     vi.useFakeTimers(); valid(); submit();
     const request = http.expectOne('/api/v1/auth/register');

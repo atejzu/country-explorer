@@ -1,0 +1,10 @@
+// Share containment and stacking without altering either empty card's layout or focus outlines.
+.globe-card:has(> app-globe-card-pattern) {
+  position: relative;
+  isolation: isolate;
+
+  > :not(app-globe-card-pattern) {
+    position: relative;
+    z-index: 1;
+  }
+}

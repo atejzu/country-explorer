@@ -5,13 +5,14 @@ import { Subscription } from 'rxjs';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { ProtectedActionIntent } from '../../../core/auth/protected-action-intent';
 import { AuthRequiredPrompt } from '../../../shared/ui/auth-required-prompt/auth-required-prompt';
+import { GlobeCardPattern } from '../../../shared/ui/globe-card-pattern/globe-card-pattern';
 import { CommunityApi } from '../community-api';
 import { communityError } from '../community-feedback';
 import { Discussion, DiscussionSummary, PageResponse } from '../community.models';
 import { DiscussionCard } from './discussion-card';
 import { DiscussionEditor } from './discussion-editor';
 import { CommunityPagination } from './community-pagination';
-@Component({ selector: 'app-discussion-list', imports: [DiscussionCard, DiscussionEditor, CommunityPagination, AuthRequiredPrompt],
+@Component({ selector: 'app-discussion-list', imports: [DiscussionCard, DiscussionEditor, CommunityPagination, AuthRequiredPrompt, GlobeCardPattern],
   templateUrl: './discussion-list.html', styleUrl: '../community.scss',
   styles: `:host { margin-top:var(--spacing-48); }` })
 export class DiscussionList {

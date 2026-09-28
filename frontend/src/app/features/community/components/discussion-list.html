@@ -12,7 +12,8 @@
   } @else {
     <div class="stack">
       @for (discussion of result()?.items; track discussion.id) { <app-discussion-card [discussion]="discussion" /> }
-      @empty { <div class="panel empty"><h3>Ta država še nima razprav.</h3><p>Začni prvi pogovor.</p>
+      @empty { <div class="panel empty globe-card"><app-globe-card-pattern />
+        <h3>Ta država še nima razprav.</h3><p>Začni prvi pogovor.</p>
         <button #emptyCreate class="button primary" (click)="create(emptyCreate)">Začni razpravo</button></div> }
     </div>
   }

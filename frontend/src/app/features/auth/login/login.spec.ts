@@ -26,6 +26,10 @@ describe('Login Signal Form', () => {
   });
   afterEach(() => http.verify());
 
+  it('includes the shared background hidden from assistive technology', () => {
+    expect(element().querySelector('app-globe-background')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
   it('validates required fields and email using Signal Forms', async () => {
     submit(); await render();
     expect(element().textContent).toContain('Vnesi e-poštni naslov.');

@@ -6,13 +6,14 @@ import { apiProblem } from '../../../core/http/api-problem';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { ProtectedActionIntent } from '../../../core/auth/protected-action-intent';
 import { AuthRequiredPrompt } from '../../../shared/ui/auth-required-prompt/auth-required-prompt';
+import { GlobeCardPattern } from '../../../shared/ui/globe-card-pattern/globe-card-pattern';
 import { CommunityApi } from '../community-api';
 import { communityError } from '../community-feedback';
 import { Comment, PageResponse } from '../community.models';
 import { CommentForm } from './comment-form';
 import { CommentItem } from './comment-item';
 import { CommunityPagination } from './community-pagination';
-@Component({ selector: 'app-comment-list', imports: [CommentForm, CommentItem, CommunityPagination, AuthRequiredPrompt],
+@Component({ selector: 'app-comment-list', imports: [CommentForm, CommentItem, CommunityPagination, AuthRequiredPrompt, GlobeCardPattern],
   templateUrl: './comment-list.html', styleUrl: '../community.scss', styles: `:host { margin-top:var(--spacing-48); } .stack { margin-top:var(--spacing-24); }` })
 export class CommentList {
   readonly discussionId = input.required<string>();

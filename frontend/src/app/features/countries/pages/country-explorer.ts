@@ -12,7 +12,8 @@ import { DEFAULT_QUERY, queryParams, readCountryQuery, sameQuery } from '../mode
 import { REGION_LABELS } from '../models/country-labels';
 import { CountryCard } from '../components/country-card';
 import { CountrySkeleton } from '../components/country-skeleton';
-@Component({ selector: 'app-country-explorer', imports: [CountryCard, CountrySkeleton, DecimalPipe],
+import { GlobeBackground } from '../../../shared/ui/globe-background/globe-background';
+@Component({ selector: 'app-country-explorer', imports: [CountryCard, CountrySkeleton, DecimalPipe, GlobeBackground],
   templateUrl: './country-explorer.html', styleUrl: './country-explorer.scss' })
 export class CountryExplorer {
   private readonly route = inject(ActivatedRoute);

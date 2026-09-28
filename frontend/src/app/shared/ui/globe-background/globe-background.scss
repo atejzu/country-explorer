@@ -1,0 +1,76 @@
+:host {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.globe {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  // Coordinates resolve against the fixed viewport, independent of loading and content height.
+  // Keep the entire image box inside the physical viewport edges.
+  left: clamp(calc(var(--size) / 2 + 8px), var(--x), calc(100% - var(--size) / 2 - 8px));
+  top: clamp(calc(var(--size) / 2 + 8px), var(--y), calc(100% - var(--size) / 2 - 8px));
+  transform: translate(-50%, -50%);
+  background: url('/branding/globe.png') center / contain no-repeat;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.tiny { --size: 45px; }
+.small { --size: 60px; }
+.medium { --size: 85px; }
+.large { --size: 120px; }
+.accent { --size: 150px; }
+
+// Hand-placed scatter. The first eight already span the page, so hiding later elements
+// preserves the same composition across breakpoints, refreshes and navigation.
+.globe:nth-child(1) { --x: 8%; --y: 4%; }
+.globe:nth-child(2) { --x: 72%; --y: 17%; }
+.globe:nth-child(3) { --x: 39%; --y: 31%; }
+.globe:nth-child(4) { --x: 91%; --y: 46%; }
+.globe:nth-child(5) { --x: 19%; --y: 61%; }
+.globe:nth-child(6) { --x: 61%; --y: 74%; }
+.globe:nth-child(7) { --x: 32%; --y: 91%; }
+.globe:nth-child(8) { --x: 84%; --y: 97%; }
+.globe:nth-child(9) { --x: 48%; --y: 9%; }
+.globe:nth-child(10) { --x: 12%; --y: 39%; }
+.globe:nth-child(11) { --x: 77%; --y: 56%; }
+.globe:nth-child(12) { --x: 51%; --y: 85%; }
+.globe:nth-child(13) { --x: 25%; --y: 15%; }
+.globe:nth-child(14) { --x: 93%; --y: 26%; }
+.globe:nth-child(15) { --x: 55%; --y: 43%; }
+.globe:nth-child(16) { --x: 6%; --y: 78%; }
+.globe:nth-child(17) { --x: 69%; --y: 92%; }
+.globe:nth-child(18) { --x: 35%; --y: 53%; }
+.globe:nth-child(19) { --x: 80%; --y: 7%; }
+.globe:nth-child(20) { --x: 43%; --y: 68%; }
+.globe:nth-child(21) { --x: 17%; --y: 96%; }
+.globe:nth-child(22) { --x: 64%; --y: 24%; }
+.globe:nth-child(23) { --x: 88%; --y: 83%; }
+.globe:nth-child(24) { --x: 28%; --y: 72%; }
+
+@media (max-width: 800px) {
+  .globe:nth-child(n + 13) { display: none; }
+  .tiny { --size: 40px; }
+  .small { --size: 50px; }
+  .medium { --size: 65px; }
+  .large { --size: 90px; }
+  .accent { --size: 90px; }
+}
+
+@media (max-width: 560px) {
+  .globe:nth-child(n + 9) { display: none; }
+  .tiny { --size: 35px; }
+  .small { --size: 45px; }
+  .medium { --size: 55px; }
+  .large { --size: 70px; }
+  .accent { --size: 70px; }
+}
+
+@media (forced-colors: active) {
+  :host { display: none; }
+}

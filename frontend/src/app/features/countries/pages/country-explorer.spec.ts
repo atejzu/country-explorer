@@ -30,6 +30,10 @@ describe('Country explorer', () => {
     harness = await RouterTestingHarness.create();
   });
   afterEach(() => { vi.useRealTimers(); try { http.verify(); } finally { TestBed.resetTestingModule(); } });
+  it('includes the shared background hidden from assistive technology', async () => {
+    await start(); request().flush([]); await render();
+    expect(element().querySelector('app-globe-background')?.getAttribute('aria-hidden')).toBe('true');
+  });
   it('initializes all controls from the URL and renders returned results without sorting them', async () => {
     await start('/?search=land&region=Europe&sort=population&direction=desc');
     expect(input().value).toBe('land');

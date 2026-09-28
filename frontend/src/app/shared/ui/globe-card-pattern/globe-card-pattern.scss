@@ -1,0 +1,49 @@
+:host {
+  display: block;
+  position: absolute;
+  inset: 1px;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.globe {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  left: clamp(calc(var(--size) / 2 + 6px), var(--x), calc(100% - var(--size) / 2 - 6px));
+  top: clamp(calc(var(--size) / 2 + 6px), var(--y), calc(100% - var(--size) / 2 - 6px));
+  transform: translate(-50%, -50%);
+  background: url('/branding/globe.png') center / contain no-repeat;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.tiny { --size: 28px; }
+.small { --size: 34px; }
+.medium { --size: 44px; }
+.large { --size: 58px; }
+.accent { --size: 65px; }
+
+// One hand-placed scatter shared by both cards; mobile retains the first six coordinates.
+.globe:nth-child(1) { --x: 7%; --y: 11%; }
+.globe:nth-child(2) { --x: 34%; --y: 8%; }
+.globe:nth-child(3) { --x: 19%; --y: 83%; }
+.globe:nth-child(4) { --x: 68%; --y: 44%; }
+.globe:nth-child(5) { --x: 63%; --y: 92%; }
+.globe:nth-child(6) { --x: 91%; --y: 77%; }
+.globe:nth-child(7) { --x: 13%; --y: 51%; }
+.globe:nth-child(8) { --x: 86%; --y: 17%; }
+.globe:nth-child(9) { --x: 44%; --y: 63%; }
+
+@media (max-width: 560px) {
+  .globe:nth-child(n + 7) { display: none; }
+  .tiny { --size: 24px; }
+  .small { --size: 28px; }
+  .medium { --size: 40px; }
+}
+
+@media (forced-colors: active) {
+  :host { display: none; }
+}

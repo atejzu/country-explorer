@@ -5,9 +5,10 @@ import { AuthStore } from '../../../core/auth/auth-store';
 import { CountryCard } from '../../countries/components/country-card';
 import { CountrySkeleton } from '../../countries/components/country-skeleton';
 import { FavoritesStore } from '../favorites-store';
+import { GlobeCardPattern } from '../../../shared/ui/globe-card-pattern/globe-card-pattern';
 
 @Component({
-  selector: 'app-favorites-page', imports: [RouterLink, CountryCard, CountrySkeleton],
+  selector: 'app-favorites-page', imports: [RouterLink, CountryCard, CountrySkeleton, GlobeCardPattern],
   templateUrl: './favorites-page.html', styleUrl: './favorites-page.scss',
   host: { '(keydown)': 'keyboard = true', '(pointerdown)': 'keyboard = false' },
 })

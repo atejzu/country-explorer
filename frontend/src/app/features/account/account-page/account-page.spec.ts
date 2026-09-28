@@ -19,6 +19,10 @@ describe('Account page', () => {
     harness = await RouterTestingHarness.create('/account');
   });
   afterEach(() => http.verify());
+  it('includes the shared background hidden from assistive technology', async () => {
+    http.expectOne('/api/v1/users/me').flush(currentUser); await render();
+    expect(element().querySelector('app-globe-background')?.getAttribute('aria-hidden')).toBe('true');
+  });
   it('shows loading then own account, a Slovenian date and no internal UUID', async () => {
     expect(element().textContent).toContain('Nalaganje računa');
     http.expectOne('/api/v1/users/me').flush(currentUser); await render();

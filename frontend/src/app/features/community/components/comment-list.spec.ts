@@ -28,11 +28,13 @@ describe('Comments and permanent discussion lock', () => {
   async function edit() { button(item(), 'Uredi').click(); await render(); }
   async function remove() { button(item(), 'Izbriši').click(); await render(); }
   it('keeps comments independently loading and offers authenticated form', async () => {
+    expect(list().querySelector('app-globe-card-pattern')).toBeNull();
     expect(list().textContent).toContain('Nalaganje komentarjev'); expect(root().querySelector('h1')?.textContent).toBe(discussion.title);
     expect(create().textContent).toContain(`Objavljaš kot ${discussion.author.username}`); expect(create().textContent).toContain('Največ 2.000 znakov.'); await loaded();
   });
   it('renders server order, escaped multiline text, owner marker and controls on a locked discussion', async () => {
     await loaded([comment, { ...comment, id: 'comment-2', body: '<script>bad()</script>', author: { id: 'other', username: 'Other user' }, updatedAt: '2026-09-27T10:00:00Z' }]);
+    expect(list().querySelector('app-globe-card-pattern')).toBeNull();
     const items = list().querySelectorAll('app-comment-item'); expect(items).toHaveLength(2);
     expect(items[0].textContent).toContain(comment.body); expect(items[0].textContent).toContain('Vi');
     expect(items[0].querySelectorAll('button')).toHaveLength(2); expect(items[1].querySelector('button')).toBeNull();
@@ -47,8 +49,11 @@ describe('Comments and permanent discussion lock', () => {
   });
   it('handles empty and section error/retry without reloading discussion', async () => {
     http.expectOne(COMMENTS + '?page=0&size=20').error(new ProgressEvent('error')); await render();
-    expect(list().textContent).toContain('Komentarjev ni bilo mogoče naložiti.'); button(list(), 'Poskusi znova').click(); await loaded([]);
+    expect(list().querySelector('app-globe-card-pattern')).toBeNull();
+    expect(list().textContent).toContain('Komentarjev ni bilo mogoče naložiti.'); button(list(), 'Poskusi znova').click(); await render();
+    expect(list().querySelector('app-globe-card-pattern')).toBeNull(); await loaded([]);
     expect(list().textContent).toContain('Komentarjev še ni.'); expect(list().textContent).toContain('Bodi prvi, ki odgovori.'); http.expectNone(URL);
+    expect(list().querySelector('.globe-card > app-globe-card-pattern')?.getAttribute('aria-hidden')).toBe('true');
   });
   it('paginates oldest-first without reloading discussion metadata', async () => {
     await loaded([comment], 21); expect(button(list(), 'Prejšnja stran').disabled).toBe(true); button(list(), 'Naslednja stran').click(); await render();
