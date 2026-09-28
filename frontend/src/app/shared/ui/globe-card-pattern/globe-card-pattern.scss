@@ -26,7 +26,7 @@
 .large { --size: 58px; }
 .accent { --size: 65px; }
 
-// One hand-placed scatter shared by both cards; mobile retains the first six coordinates.
+// One hand-placed scatter shared by empty cards; mobile keeps the first six globes.
 .globe:nth-child(1) { --x: 7%; --y: 11%; }
 .globe:nth-child(2) { --x: 34%; --y: 8%; }
 .globe:nth-child(3) { --x: 19%; --y: 83%; }
@@ -35,10 +35,13 @@
 .globe:nth-child(6) { --x: 91%; --y: 77%; }
 .globe:nth-child(7) { --x: 13%; --y: 51%; }
 .globe:nth-child(8) { --x: 86%; --y: 17%; }
-.globe:nth-child(9) { --x: 44%; --y: 63%; }
+.globe:nth-child(9) { --x: 44%; --y: 76%; }
 
 @media (max-width: 560px) {
   .globe:nth-child(n + 7) { display: none; }
+  .globe:nth-child(3) { --y: 88%; }
+  .globe:nth-child(4) { --x: 86%; --y: 12%; }
+  .globe:nth-child(6) { --y: 86%; }
   .tiny { --size: 24px; }
   .small { --size: 28px; }
   .medium { --size: 40px; }
